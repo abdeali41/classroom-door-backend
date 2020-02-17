@@ -51,7 +51,14 @@ export const students = functions.https.onRequest(
 
 //Methods
 
-const defaultAvailable = { "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], }
+const defaultAvailable = { "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], };
+const SortTypes = {
+  ratings: "RATING",
+  bestMatch: "BEST_MATCH",
+  hoursTutoring: "HOURS_TUTORING",
+  myFavorite: "MY_FAVORITES"
+}
+
 const getTeacherDataWithFilters = async (filters: any) => {
   let queryRef: FirebaseFirestore.Query = teacherCollection;
   console.log("FilterData = ", filters)
@@ -69,60 +76,27 @@ const getTeacherDataWithFilters = async (filters: any) => {
     return Promise.all(allTeachersData);
   }
   const {
-    // teacherType = 'All',
-    // subjects = [],
-    // hourlyRate,
-    // gender,
-    // availability,
-    // selectAllAvailability,
-    // education,
-    // backgroundCheck = false,
-    sortByType = "ratings",
+    sortByType = SortTypes.ratings,
     sortDirectionAscending = true
   } = filters;
 
 
-  // // Filter Teacher Type
-  // if (teacherType) {
-  //   queryRef = teacherType !== "All" ? queryRef.where("teacherType", "==", teacherType) : queryRef;
-  // }
-
-  // // Filter Subjects
-  // if (subjects.length > 0) {
-  //   queryRef = queryRef.where("subjects", "array-contains-any", subjects);
-  // }
-
-
-  // // Filter Gender 
-  // if (gender && gender !== 'ALL') {
-  //   queryRef = queryRef.where("gender", '==', gender);
-  // }
-
-  const SortTypes = {
-    ratings: "RATINGS",
-    bestMatch: "BEST_MATCH",
-    hoursTutoring: "HOURS_TUTORING",
-    myFavorite: "MY_FAVORITES"
-  }
   switch (sortByType) {
-    case SortTypes.ratings:
-      // ratings 
-      queryRef = queryRef.orderBy("userMeta.ratings", sortDirectionAscending ? 'asc' : 'desc')
-      break;
 
+    case SortTypes.ratings:
+      queryRef = queryRef.orderBy("userMeta.ratings", sortDirectionAscending ? 'asc' : 'desc');
+      break;
     case SortTypes.bestMatch:
     // break;
-
     case SortTypes.hoursTutoring:
-      // hours Tutoring
-      queryRef = queryRef.orderBy("userMeta.hoursTutoring", sortDirectionAscending ? 'asc' : 'desc')
+      queryRef = queryRef.orderBy("userMeta.hoursTutoring", sortDirectionAscending ? 'asc' : 'desc');
       break;
 
     case sortByType.myFavorite:
     // break;
 
     default:
-      queryRef = queryRef.orderBy("userMeta.ratings", sortDirectionAscending ? 'asc' : 'desc')
+      queryRef = queryRef.orderBy("userMeta.ratings", sortDirectionAscending ? 'asc' : 'desc');
   }
   const filterFunction = (item: any) => {
     const {
@@ -130,15 +104,15 @@ const getTeacherDataWithFilters = async (filters: any) => {
       subjects = [],
       hourlyRate,
       gender,
-      // availability,
-      // selectAllAvailability,
+      availability,
+      selectAllAvailability,
       education,
     } = filters;
 
 
     const {
       teacherEducationQualification,
-      // teacherWeeklyAvailability, 
+      teacherWeeklyAvailability,
       oneToOneSessionRate,
       gender: userGender,
       subjects: userSubjects = [],
@@ -162,12 +136,10 @@ const getTeacherDataWithFilters = async (filters: any) => {
       subjectFilterResult = userSubjects.some((subItem: any) => subjects.includes(subItem))
     }
 
-
     // Filter Gender 
-    if (gender && gender !== 'All') {
+    if (gender && gender.toUpperCase() !== 'ALL') {
       genderFilterResult = userGender === gender
     }
-
 
     if (education) {
       educationFilterResult = teacherEducationQualification.value <= education.value
@@ -187,6 +159,17 @@ const getTeacherDataWithFilters = async (filters: any) => {
     //   }
     //   availabilityFilterResult = isAvailable
     // }
+
+
+    if (availability && availability !== defaultAvailable && !selectAllAvailability) {
+      availabilityFilterResult = Object.keys(availability).reduce((result, newKey, weekDayIndex) => {
+        if (teacherWeeklyAvailability[weekDayIndex].length !== 0 && availability[weekDayIndex].length !== 0) {
+          return teacherWeeklyAvailability[weekDayIndex].some((weekItem: string) => availability[weekDayIndex].includes(weekItem))
+        }
+        return true;
+      }, true)
+    }
+
 
     if (hourlyRate) { // check 
       const { min, max } = hourlyRate;
@@ -259,6 +242,7 @@ const updateTeacherPreference = async () => {
       teacherEducationQualification,
       oneToOneSessionRate,
       teacherWeeklyAvailability = defaultAvailable,
+      teacherCertificateDetails,
       ...otherData
     } = data;
     const subjects = [
@@ -305,7 +289,8 @@ const updateTeacherPreference = async () => {
       return weeklyAvailability
     }, {})
 
-    console.log("newTeacherWeeklyAvailability:::::, ", newTeacherWeeklyAvailability, teacherWeeklyAvailability)
+    const { issuingOrganisation, ...otherTeacherCertificateDetails } = teacherCertificateDetails;
+    const newTeacherCertificateDetails = { ...otherTeacherCertificateDetails, issuingOrganization: issuingOrganisation }
 
     const newData = {
       ...otherData,
@@ -338,7 +323,9 @@ const updateTeacherPreference = async () => {
         sessionsCompleted: 0,
       },
       teacherWeeklyAvailability: newTeacherWeeklyAvailability,
+      teacherCertificateDetails: newTeacherCertificateDetails,
     };
+
     batch.set(firestoreDB.collection("teachersCopy").doc(doc.id), newData);
   });
   return batch.commit();
@@ -423,5 +410,28 @@ export const setStandardizedTestList = functions.https.onRequest(
       .catch(err =>
         console.log("Found Error on updating Standardized Test List: ", err)
       );
+  }
+);
+
+export const getAllUsers = functions.https.onRequest(
+  async (request: any, response: any) => {
+
+    let userIds: string[] = [];
+    const usersQuery = await userCollection.orderBy('name', 'asc').get();
+
+    // let userMap: Object = {};
+    const userData = usersQuery.docs.map((docItem, index) => {
+      const id: string = docItem.id
+      const data = docItem.data();
+      console.log("User---" + "index" + "----" + JSON.stringify(data))
+      userIds.push(id)
+      // userMap[id] = data;
+      return { ...data }
+    })
+    response.status(200).json({
+      data: userData,
+      userIds,
+      message: "all users"
+    });
   }
 );
