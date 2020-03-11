@@ -40,7 +40,8 @@ export const toggleMarkAsFavourite = functions.https.onRequest(
 			.then(() =>
 				res.json({
 					success: true,
-					message: "Mark as favorite status changed!"
+					message: "Mark as favorite status changed!",
+					favorites: student.userMeta.favorites
 				})
 			)
 			.catch(err =>
