@@ -21,27 +21,28 @@ export const toggleMarkAsFavourite = functions.https.onRequest(
 		const studentDoc = studentCollection.doc(studentId);
 		const student = await studentDoc.get().then((doc: any) => doc.data());
 
-		student.userMeta =
-			student.userMeta === undefined
-				? {
-						favorites: [teacherId]
-				  }
-				: {
-						...student.userMeta,
-						favorites: student.userMeta.favorites.filter(
-							(f: String) => f !== teacherId
-						)
-				  };
+		const userMeta =
+			student.userMeta === undefined ? { favorites: [] } : student.userMeta;
+
+		userMeta.favorites =
+			userMeta.favorites === undefined
+				? [teacherId]
+				: userMeta.favorites.includes(teacherId)
+				? student.userMeta.favorites.filter((f: String) => f !== teacherId)
+				: [teacherId];
+
+		student.userMeta = userMeta;
 
 		studentDoc
 			.update({
-				userMeta: student.userMeta
+				userMeta: student.userMeta,
+				studentEducationStatus: "Educated"
 			})
 			.then(() =>
 				res.json({
 					success: true,
 					message: "Mark as favorite status changed!",
-					favorites: student.userMeta.favorites
+					favorites: userMeta.favorites
 				})
 			)
 			.catch(err =>
