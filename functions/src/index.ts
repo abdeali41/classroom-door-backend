@@ -16,7 +16,6 @@ import {
 } from "./update-user-data";
 
 export const firestoreDB = admin.firestore();
-export const realtimeDB = admin.database();
 export const userCollection = firestoreDB.collection("users");
 export const teacherCollection = firestoreDB.collection("teachersCopy");
 export const studentCollection = firestoreDB.collection("students");

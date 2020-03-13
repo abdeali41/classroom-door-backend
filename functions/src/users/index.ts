@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { userCollection, realtimeDB } from "..";
+import { userCollection } from "..";
 
 type userIdType = string;
 
@@ -22,15 +22,12 @@ export const getAllUsers = async () => {
 
 export const getRoomMembers = functions.https.onRequest(
 	async (req: any, res: any) => {
-		const { roomId } = req.body;
-
-		const roomUsersSnapshot = await realtimeDB
-			.ref("rooms")
-			.child(roomId)
-			.child("users")
-			.once("value");
-		roomUsersSnapshot.forEach((snap: any) => snap.key);
-		// const usersQuery = await userCollection.orderBy("name", "asc").get();
-		res.status(200).json(roomUsersSnapshot);
+		const { userIds } = req.body;
+		const roomMembers = await getUsersById(userIds);
+		res.status(200).json({
+			success: true,
+			message: "Room members!",
+			roomMembers: roomMembers
+		});
 	}
 );
