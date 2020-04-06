@@ -8,7 +8,7 @@ admin.initializeApp({
 	databaseURL: "https://classroom-door.firebaseio.com"
 });
 // import { } from './subjects';
-import { getAllUsers, getUsersById } from "./users";
+import { getAllUsers, getUsersById, getRoomMembers } from "./users";
 import * as Students from "./students";
 import {
 	updateTeacherPreference,
@@ -106,4 +106,8 @@ export const updateUserData = functions.https.onRequest(
 	}
 );
 
+// FOR CHANGING MARK AS FAVORITE STATUS
 export const toggleMarkAsFavourite = Students.toggleMarkAsFavourite;
+
+// TO GET ALL USERS THAT BELONGS TO A PARTICULAR ROOM AND ALSO RETURN REMAINING USERS
+export const roomMembers = getRoomMembers;
