@@ -1,15 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { getTeacherDataWithFilters } from "./teachers";
-
-const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
-// Init Block
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
-	databaseURL: "https://classroom-door.firebaseio.com",
-});
-
-// import { } from './subjects';
 import {
 	getAllUsers,
 	getUsersById,
@@ -32,10 +23,24 @@ import {
 	triggerOnCreateBookingRequest,
 	triggerOnUpdateBookingRequest,
 } from "./booking-request";
+import {
+	capitalizeName,
+	notificationTypes,
+	Notification,
+} from "./notifications";
+
+const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: "https://classroom-door.firebaseio.com",
+});
 
 // Firestore Collections
 import { firestoreCollectionKeys } from "./libs/constants";
 export const firestoreDB = admin.firestore();
+export const realtimeDB = admin.database();
+export const fcmMessaging = admin.messaging();
 export const userCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USERS
 );
@@ -51,6 +56,7 @@ export const bookingRequestCollection = firestoreDB.collection(
 export const userEventCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USER_META
 );
+export const notificationCollection = firestoreDB.collection("notifications");
 
 // Get Users
 export const users = functions.https.onCall(
@@ -190,3 +196,87 @@ export const userImage = getUserImage;
 export const createGroupChat = Messages.createGroupChat;
 //To get all recent chats of user
 export const getMessagingList = Messages.getMessagingList;
+//////////NOTIFICATION AREA/////////////
+
+// For sending push notification when user sends message
+export const newMessageNotification = functions.database
+	.ref(`chats/room-chats/{chatId}/conversation`)
+	.onCreate(async (snapshot, context) => {
+		const message = snapshot.val();
+		const chatId = context.params.chatId;
+		const senderId = message.senderId;
+		console.log("Uppercasing", chatId, message);
+
+		const chatMembers = await realtimeDB
+			.ref(`rooms/${chatId}/users`)
+			.once("value");
+
+		const roomMemberIds: Array<string | null> = [];
+
+		let userDetail: any = {};
+
+		chatMembers.forEach((snap) => {
+			if (snap.key === senderId) {
+				userDetail = snap.val();
+			}
+			roomMemberIds.push(snap.key);
+		});
+
+		const receiverIds = roomMemberIds.filter((rm) => rm !== senderId);
+
+		const senderName = userDetail.firstName
+			? capitalizeName(userDetail.firstName, userDetail.lastName)
+			: "";
+
+		const notificationType = message.image
+			? notificationTypes.image
+			: notificationTypes.text;
+
+		const notification: Notification = {
+			senderId,
+			receiverIds,
+			title: "message",
+			message: message.text,
+			type: notificationType,
+			readAt: null,
+			sentAt: admin.database.ServerValue.TIMESTAMP,
+			createdAt: admin.database.ServerValue.TIMESTAMP,
+		};
+
+		const title = `New Message ${
+			senderName !== "" ? `from ${senderName}` : ""
+		}`;
+
+		const payload = {
+			notification: {
+				title,
+				body: message.text,
+				image: message.image,
+			},
+		};
+
+		await notificationCollection.doc().set(notification);
+
+		const usersSnapshot = await userCollection
+			.where("uid", "in", roomMemberIds)
+			.get();
+		const deviceTokens: Array<string> = [];
+		usersSnapshot.forEach((doc) => {
+			const userdata = doc.data();
+			if (userdata.devices) {
+				deviceTokens.push(userdata.devices.join());
+			}
+		});
+
+		console.log("deviceTokens", deviceTokens);
+
+		const result = await fcmMessaging.sendToDevice(
+			deviceTokens.join(),
+			payload
+		);
+
+		console.log(result);
+		return Promise.resolve(true);
+	});
+
+//////////NOTIFICATION AREA/////////////
