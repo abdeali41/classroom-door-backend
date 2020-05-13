@@ -17,6 +17,7 @@ import {
 	getUserImage,
 } from "./users";
 import * as Students from "./students";
+import * as Messages from "./messages";
 import {
 	updateTeacherPreference,
 	updateUserProfileDetails,
@@ -183,3 +184,9 @@ export const onUpdateBookingRequestTrigger = triggerOnUpdateBookingRequest;
 
 // Get user image
 export const userImage = getUserImage;
+//Messaging
+
+//To create chat group between users
+export const createGroupChat = Messages.createGroupChat;
+//To get all recent chats of user
+export const getMessaingList = Messages.getMessaingList;
