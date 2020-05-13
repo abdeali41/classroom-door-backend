@@ -23,11 +23,7 @@ import {
 	triggerOnCreateBookingRequest,
 	triggerOnUpdateBookingRequest,
 } from "./booking-request";
-import {
-	capitalizeName,
-	notificationTypes,
-	Notification,
-} from "./notifications";
+import { sendNewMessageNotification } from "./notifications";
 
 const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
 
@@ -199,84 +195,6 @@ export const getMessagingList = Messages.getMessagingList;
 //////////NOTIFICATION AREA/////////////
 
 // For sending push notification when user sends message
-export const newMessageNotification = functions.database
-	.ref(`chats/room-chats/{chatId}/conversation`)
-	.onCreate(async (snapshot, context) => {
-		const message = snapshot.val();
-		const chatId = context.params.chatId;
-		const senderId = message.senderId;
-		console.log("Uppercasing", chatId, message);
-
-		const chatMembers = await realtimeDB
-			.ref(`rooms/${chatId}/users`)
-			.once("value");
-
-		const roomMemberIds: Array<string | null> = [];
-
-		let userDetail: any = {};
-
-		chatMembers.forEach((snap) => {
-			if (snap.key === senderId) {
-				userDetail = snap.val();
-			}
-			roomMemberIds.push(snap.key);
-		});
-
-		const receiverIds = roomMemberIds.filter((rm) => rm !== senderId);
-
-		const senderName = userDetail.firstName
-			? capitalizeName(userDetail.firstName, userDetail.lastName)
-			: "";
-
-		const notificationType = message.image
-			? notificationTypes.image
-			: notificationTypes.text;
-
-		const notification: Notification = {
-			senderId,
-			receiverIds,
-			title: "message",
-			message: message.text,
-			type: notificationType,
-			readAt: null,
-			sentAt: admin.database.ServerValue.TIMESTAMP,
-			createdAt: admin.database.ServerValue.TIMESTAMP,
-		};
-
-		const title = `New Message ${
-			senderName !== "" ? `from ${senderName}` : ""
-		}`;
-
-		const payload = {
-			notification: {
-				title,
-				body: message.text,
-				image: message.image,
-			},
-		};
-
-		await notificationCollection.doc().set(notification);
-
-		const usersSnapshot = await userCollection
-			.where("uid", "in", roomMemberIds)
-			.get();
-		const deviceTokens: Array<string> = [];
-		usersSnapshot.forEach((doc) => {
-			const userdata = doc.data();
-			if (userdata.devices) {
-				deviceTokens.push(userdata.devices.join());
-			}
-		});
-
-		console.log("deviceTokens", deviceTokens);
-
-		const result = await fcmMessaging.sendToDevice(
-			deviceTokens.join(),
-			payload
-		);
-
-		console.log(result);
-		return Promise.resolve(true);
-	});
+export const newMessageNotification = sendNewMessageNotification;
 
 //////////NOTIFICATION AREA/////////////
