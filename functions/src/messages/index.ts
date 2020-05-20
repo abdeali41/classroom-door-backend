@@ -51,7 +51,7 @@ export const createGroupChat = functions.https.onRequest(async (req, res) => {
 	});
 });
 
-export const getMessaingList = functions.https.onRequest(async (req, res) => {
+export const getMessagingList = functions.https.onRequest(async (req, res) => {
 	const { userId }: any = req.body;
 
 	const userSnapshot = userCollection.doc(userId).get();
@@ -68,7 +68,7 @@ export const getMessaingList = functions.https.onRequest(async (req, res) => {
 			.limitToLast(1)
 			.once("value");
 
-		const lastMessage = lastMessageRef.val();
+		const lastMessage = lastMessageRef.val() || {};
 
 		const chatMetaRef = await getChatMetaRef(
 			chatTypes.GROUP_CHATS,
@@ -91,7 +91,12 @@ export const getMessaingList = functions.https.onRequest(async (req, res) => {
 			members.push(doc.data());
 		});
 
-		return { ...chatMeta, lastMessage, members };
+		return {
+			...chatMeta,
+			lastMessage: Object.values(lastMessage)[0],
+			members,
+			memberIds: memberIdsWithoutUserId,
+		};
 	});
 
 	const messages = await Promise.all(messagesArr);

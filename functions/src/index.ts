@@ -189,4 +189,4 @@ export const userImage = getUserImage;
 //To create chat group between users
 export const createGroupChat = Messages.createGroupChat;
 //To get all recent chats of user
-export const getMessaingList = Messages.getMessaingList;
+export const getMessagingList = Messages.getMessagingList;
