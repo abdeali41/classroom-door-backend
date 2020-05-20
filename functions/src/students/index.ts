@@ -15,7 +15,7 @@ export const getAllStudents = async () => {
 	return Promise.all(allStudentsData);
 };
 
-export const toggleMarkAsFavourite = functions.https.onRequest(
+export const toggleMarkAsFavorite = functions.https.onRequest(
 	async (req: any, res: any) => {
 		const { studentId, teacherId } = req.body;
 		const studentDoc = studentCollection.doc(studentId);
@@ -28,8 +28,8 @@ export const toggleMarkAsFavourite = functions.https.onRequest(
 			userMeta.favorites === undefined
 				? [teacherId]
 				: userMeta.favorites.includes(teacherId)
-				? student.userMeta.favorites.filter((f: String) => f !== teacherId)
-				: [teacherId];
+					? student.userMeta.favorites.filter((f: String) => f !== teacherId)
+					: [teacherId];
 
 		student.userMeta = userMeta;
 
