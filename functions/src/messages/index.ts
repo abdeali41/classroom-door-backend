@@ -99,10 +99,29 @@ export const getMessagingList = functions.https.onRequest(async (req, res) => {
 		};
 	});
 
-	const messages = await Promise.all(messagesArr);
+	const allMessages = await Promise.all(messagesArr);
+
+	const messages = allMessages.filter((msg: any) => {
+		const deletedBy = msg.deletedBy || {};
+		const archivedBy = msg.archivedBy || {};
+		if (deletedBy[userId] || archivedBy[userId]) {
+			return false;
+		}
+		return true;
+	});
+
+	const archived = allMessages.filter((msg: any) => {
+		const archivedBy = msg.archivedBy || {};
+		if (archivedBy[userId]) {
+			return true;
+		}
+		return false;
+	});
+
 	res.json({
 		success: true,
 		message: "fetch all recent messages!",
-		messages: messages,
+		messages,
+		archived,
 	});
 });
