@@ -6,6 +6,10 @@ const notificationTypes = {
 	text: "text",
 	image: "image",
 };
+const chatTypes = {
+	ROOM_CHATS: "room-chats",
+	GROUP_CHATS: "group-chats",
+};
 
 interface Notification {
 	senderId: string;
@@ -25,26 +29,36 @@ const capitalizeName = (firstName: String, lastName: String) => {
 };
 
 export const sendNewMessageNotification = functions.database
-	.ref(`chats/room-chats/{chatId}/conversation/{messageId}`)
+	.ref(`chats/{chatType}/{chatId}/conversation/{messageId}`)
 	.onCreate(async (snapshot, context) => {
 		const message = snapshot.val();
 		const chatId = context.params.chatId;
 		const messageId = context.params.messageId;
+		const chatType = context.params.chatType;
 		const senderId = message.senderId;
+
+		const roomMembersPath =
+			chatType === chatTypes.ROOM_CHATS
+				? `rooms/${chatId}/users`
+				: `chats/group-chats/${chatId}/meta/members`;
 
 		const roomMembers = await admin
 			.database()
-			.ref(`rooms/${chatId}/users`)
+			.ref(roomMembersPath)
 			.once("value");
 
-		const roomMemberIds: Array<string | null> = [];
+		let roomMemberIds: Array<string | null> = [];
 
 		const senderSnapshot = await userCollection.doc(senderId).get();
 		const sender = senderSnapshot.data() || {};
 
-		roomMembers.forEach((snap) => {
-			roomMemberIds.push(snap.key);
-		});
+		if (chatType === chatTypes.ROOM_CHATS) {
+			roomMembers.forEach((snap) => {
+				roomMemberIds.push(snap.key);
+			});
+		} else {
+			roomMemberIds = roomMembers.val();
+		}
 
 		const receiverIds = roomMemberIds.filter((rm) => rm !== senderId);
 
@@ -74,7 +88,7 @@ export const sendNewMessageNotification = functions.database
 		}`;
 
 		const payload = {
-			data: { notificationType: "MESSAGE", messageId, chatId },
+			data: { notificationType: "MESSAGE", messageId, chatId, chatType },
 			notification: {
 				title,
 				body: message.text,
