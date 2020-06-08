@@ -3,8 +3,12 @@ export const firestoreCollectionKeys = {
     USERS: 'users',
     TEACHERS: 'teachers',
     STUDENTS: 'students',
-    BOOKING_REQUESTS: 'booking-request',
+    BOOKING_REQUEST: 'booking-request',
     USER_EVENTS: 'user-events'
+}
+
+export const firestoreSubCollectionKeys = {
+    BOOKING_REQUESTS: 'booking-requests',
 }
 
 export const educationData =

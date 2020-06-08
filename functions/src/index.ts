@@ -18,7 +18,7 @@ import {
   removeAllRoomFromFirestore
 }
   from "./update-user-data";
-import { createBookingRequest } from "./booking-request";
+import { createBookingRequest, fetchUserBookingRequest, getBookingById } from "./booking-request";
 import { firestoreCollectionKeys } from "./constants";
 
 export const firestoreDB = admin.firestore();
@@ -27,7 +27,7 @@ export const teacherCollection = firestoreDB.collection(firestoreCollectionKeys.
 export const studentCollection = firestoreDB.collection(firestoreCollectionKeys.STUDENTS);
 export const userMetaDataCollection = firestoreDB.collectionGroup("userMeta");
 
-export const bookingRequestCollection = firestoreDB.collection(firestoreCollectionKeys.BOOKING_REQUESTS)
+export const bookingRequestCollection = firestoreDB.collection(firestoreCollectionKeys.BOOKING_REQUEST)
 export const userEventCollection = firestoreDB.collection(firestoreCollectionKeys.USER_EVENTS)
 
 // Get Users
@@ -159,4 +159,7 @@ export const deleteAllRooms = functions.https.onRequest((request: any, response:
 // Booking Request APIs
 export const initBookingRequest = createBookingRequest;
 
+export const getBookingRequests = fetchUserBookingRequest;
+
+export const getBookingRequestById = getBookingById;
 

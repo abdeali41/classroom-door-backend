@@ -1,7 +1,12 @@
 import * as functions from "firebase-functions";
 import { bookingRequestCollection, userEventCollection } from ".."
-import { addCreationTimeStamp } from "../libs/generics";
-// import { firestoreCollectionKeys } from "../constants";
+import {
+    addCreationTimeStamp, pushAsSuccessResponse,
+    // pushAsErrorResponse
+} from "../libs/generics";
+import {
+    firestoreSubCollectionKeys
+} from "../constants";
 
 const SESSION_TYPE_ENUM = { SINGLE: "SINGLE", GROUP: "GROUP" };
 
@@ -49,10 +54,10 @@ const BOOKING_REQUEST_STATUS_TYPE = {
 // }
 
 
-export const createBookingRequest = functions.https.onRequest(async (req: any, res: any) => {
+export const createBookingRequest = functions.https.onRequest(async (request: any, response: any) => {
     // add new request to booking request collection 
     // add the id to user's booking request array
-    const { teacherId, studentId, teacherName, studentName, teacherHourlyRate, totalSessionLength, sessionRequests, teacherGroupSessionRate } = req.body;
+    const { teacherId, studentId, teacherName, studentName, teacherHourlyRate, totalSessionLength, sessionRequests, teacherGroupSessionRate } = request.body;
     const initialRequest = sessionRequests.slots.reduce((newSlotRequest, newItem) => ({
         ...newSlotRequest,
         [`${newItem.date}-${newItem.selectedBreak}`]: {
@@ -97,37 +102,97 @@ export const createBookingRequest = functions.https.onRequest(async (req: any, r
     // adding to booking-request collection
     const bookingRequestResponse = await bookingRequestCollection.add(bookingRequest)
     const bookingRequestDocumentID = bookingRequestResponse.id;
+
+    await addBookingReqToUserEvent(bookingRequestDocumentID, studentId, teacherId);
+
+    response.status(200).json(
+        pushAsSuccessResponse("New Booking Created", {
+            id: bookingRequestDocumentID,
+            ...bookingRequest,
+        })
+
+    );
+})
+
+const addBookingReqToUserEvent = async (bookingRequestId: string, studentId: string, teacherId: string) => {
+    // Need to added to Firestore Trigger onCreate
+
     // add  this id to user-event collections user data for both teacher & student
     // node =>  user-data><studentId/teacherId>/booking-request
     // booking-request: { "requestId": Status }
 
-    await userEventCollection.doc(studentId).collection("booking-requests").doc(bookingRequestDocumentID).set({ status: BOOKING_REQUEST_STATUS_TYPE.WAITING_FOR_TEACHER_CONFIRMATION }, { merge: true })
-    await userEventCollection.doc(teacherId).collection("booking-requests").doc(bookingRequestDocumentID).set({ status: BOOKING_REQUEST_STATUS_TYPE.WAITING_FOR_TEACHER_CONFIRMATION }, { merge: true })
+    // Student
+    await userEventCollection
+        .doc(studentId)
+        .collection(firestoreSubCollectionKeys.BOOKING_REQUESTS)
+        .doc(bookingRequestId)
+        .set({
+            id: bookingRequestId,
+            status: BOOKING_REQUEST_STATUS_TYPE.WAITING_FOR_TEACHER_CONFIRMATION
+        }, { merge: true });
 
 
-    res.status(200).json({
-        success: true,
-        message: "New Booking Created",
-        data: {
-            id: bookingRequestDocumentID,
-            ...bookingRequest,
-        }
-    });
+    // Teacher    
+    await userEventCollection.doc(teacherId)
+        .collection(firestoreSubCollectionKeys.BOOKING_REQUESTS)
+        .doc(bookingRequestId)
+        .set({
+            id: bookingRequestId,
+            status: BOOKING_REQUEST_STATUS_TYPE.WAITING_FOR_TEACHER_CONFIRMATION
+        }, { merge: true })
+
+}
+
+
+// Fetch Bookings
+const getAllBookingForUser = async (userId) => {
+    const userBookingsSnapshot = await userEventCollection
+        .doc(userId)
+        .collection(firestoreSubCollectionKeys.BOOKING_REQUESTS)
+        .get();
+    const allBookingData = userBookingsSnapshot.docs.map(async bookingRequestDoc => {
+        const bookingRequestData = bookingRequestDoc.data();
+        return bookingRequestCollection.
+            doc(bookingRequestData.id)
+            .get()
+            .then(data => ({ ...data.data() }));
+    })
+    return Promise.all(allBookingData);
+}
+export const fetchUserBookingRequest = functions.https.onRequest(async (request: any, response: any) => {
+    // fetch all docs from user-events/<userId>/booking-requests
+    // Can query on this Collection as per the status
+    const { userId } = request.body;
+    getAllBookingForUser(userId)
+        .then(data => {
+            response.status(200).json(
+                pushAsSuccessResponse("Bookings Found", data)
+            );
+        })
+        .catch(err => {
+            response.status(200).json(
+                pushAsSuccessResponse("Bookings NOT Found", err)
+            );
+        })
+
+});
+
+// Fetch Single Booking by id
+export const getBookingById = functions.https.onRequest(async (request: any, response: any) => {
+    const { id } = request.body;
+    return bookingRequestCollection.doc(id).get()
+        .then(data => {
+            response.status(200).json(
+                pushAsSuccessResponse("Found Booking", { ...data.data() }))
+        })
+        .catch(err => {
+            response.status(200).json(
+                pushAsSuccessResponse("NOT Found Booking", { error: err }))
+        })
 })
 
 
-type fetchBookingRequestsDataType = {
-
-}
-
-export const fetchUserBookingRequest = (data: fetchBookingRequestsDataType) => {
-
-    // get aaray of booking request
-
-    // get Type of user 
-    // tutor can only change time
-
-}
+// Update Booking Request
 
 
 type updateBookingRequestsDataType = {
