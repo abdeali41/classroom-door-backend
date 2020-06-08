@@ -58,7 +58,7 @@ export const createBookingRequest = functions.https.onRequest(async (request: an
     // add new request to booking request collection 
     // add the id to user's booking request array
     const { teacherId, studentId, teacherName, studentName, teacherHourlyRate, totalSessionLength, sessionRequests, teacherGroupSessionRate } = request.body;
-    const initialRequest = sessionRequests.slots.reduce((newSlotRequest, newItem) => ({
+    const initialRequest = sessionRequests.reduce((newSlotRequest, newItem) => ({
         ...newSlotRequest,
         [`${newItem.date}-${newItem.selectedBreak}`]: {
             sessionLength: newItem.selectedLength,
