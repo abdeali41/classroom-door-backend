@@ -18,11 +18,17 @@ import {
   removeAllRoomFromFirestore
 }
   from "./update-user-data";
+import { createBookingRequest } from "./booking-request";
+import { firestoreCollectionKeys } from "./constants";
+
 export const firestoreDB = admin.firestore();
-export const userCollection = firestoreDB.collection("users");
-export const teacherCollection = firestoreDB.collection("teachers");
-export const studentCollection = firestoreDB.collection("students");
+export const userCollection = firestoreDB.collection(firestoreCollectionKeys.USERS);
+export const teacherCollection = firestoreDB.collection(firestoreCollectionKeys.TEACHERS);
+export const studentCollection = firestoreDB.collection(firestoreCollectionKeys.STUDENTS);
 export const userMetaDataCollection = firestoreDB.collectionGroup("userMeta");
+
+export const bookingRequestCollection = firestoreDB.collection(firestoreCollectionKeys.BOOKING_REQUESTS)
+export const userEventCollection = firestoreDB.collection(firestoreCollectionKeys.USER_EVENTS)
 
 // Get Users
 export const users = functions.https.onCall(
@@ -149,5 +155,8 @@ export const deleteAllRooms = functions.https.onRequest((request: any, response:
     );
 })
 
+
+// Booking Request APIs
+export const initBookingRequest = createBookingRequest;
 
 

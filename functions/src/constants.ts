@@ -1,4 +1,12 @@
 
+export const firestoreCollectionKeys = {
+    USERS: 'users',
+    TEACHERS: 'teachers',
+    STUDENTS: 'students',
+    BOOKING_REQUESTS: 'booking-request',
+    USER_EVENTS: 'user-events'
+}
+
 export const educationData =
     [
         { id: 'UNDERGRADUATE_STUDENT', name: 'Undergraduate Student', value: 2 },
