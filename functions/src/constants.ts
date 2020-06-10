@@ -3,11 +3,12 @@ export const firestoreCollectionKeys = {
     USERS: 'users',
     TEACHERS: 'teachers',
     STUDENTS: 'students',
+    USER_META: 'user-meta',
     BOOKING_REQUEST: 'booking-request',
-    USER_EVENTS: 'user-events'
+    SESSION_EVENTS: 'session-events',
 }
 
-export const firestoreSubCollectionKeys = {
+export const userMetaSubCollectionKeys = {
     BOOKING_REQUESTS: 'booking-requests',
 }
 
@@ -60,4 +61,21 @@ export const SortTypes = {
 export const sortOrderOptions = {
     ASCENDING: "asc",
     DESCENDING: "desc"
+};
+
+// Types of Epicboard Sessions
+export const SESSION_TYPES = {
+    SINGLE: "SINGLE",
+    GROUP: "GROUP"
+};
+
+// Status Codes
+// Booking Requests Status
+export const BOOKING_REQUEST_STATUS_CODES = {
+    WAITING_FOR_TEACHER_CONFIRMATION: 0,
+    WAITING_FOR_STUDENT_CONFIRMATION: 1,
+    ACCEPTED: 2,
+    REJECTED: 3,
+    EXPIRED: 4,
 }
+

@@ -8,6 +8,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://classroom-door.firebaseio.com"
 });
+
 // import { } from './subjects';
 import { getAllUsers, getUsersById, getRoomMembers } from "./users";
 import * as Students from "./students";
@@ -18,17 +19,23 @@ import {
   removeAllRoomFromFirestore
 }
   from "./update-user-data";
-import { createBookingRequest, fetchUserBookingRequest, getBookingById } from "./booking-request";
-import { firestoreCollectionKeys } from "./constants";
+import {
+  handleCreateBookingRequest,
+  handleGetUserBookingRequest,
+  handleGetBookingById,
+  handleUpdateBookingRequest,
+  bookingRequestOnCreateTrigger,
+  bookingRequestOnUpdateCreateTrigger
+} from "./booking-request";
 
+// Firestore Collections
+import { firestoreCollectionKeys } from "./constants";
 export const firestoreDB = admin.firestore();
 export const userCollection = firestoreDB.collection(firestoreCollectionKeys.USERS);
 export const teacherCollection = firestoreDB.collection(firestoreCollectionKeys.TEACHERS);
 export const studentCollection = firestoreDB.collection(firestoreCollectionKeys.STUDENTS);
-export const userMetaDataCollection = firestoreDB.collectionGroup("userMeta");
-
 export const bookingRequestCollection = firestoreDB.collection(firestoreCollectionKeys.BOOKING_REQUEST)
-export const userEventCollection = firestoreDB.collection(firestoreCollectionKeys.USER_EVENTS)
+export const userEventCollection = firestoreDB.collection(firestoreCollectionKeys.USER_META)
 
 // Get Users
 export const users = functions.https.onCall(
@@ -157,9 +164,17 @@ export const deleteAllRooms = functions.https.onRequest((request: any, response:
 
 
 // Booking Request APIs
-export const initBookingRequest = createBookingRequest;
+// Create Booking Request 
+export const createBookingRequest = handleCreateBookingRequest;
 
-export const getBookingRequests = fetchUserBookingRequest;
+// Fetch Booking Request
+export const getBookingRequests = handleGetUserBookingRequest;
+export const getBookingRequestById = handleGetBookingById;
 
-export const getBookingRequestById = getBookingById;
+// Update Booking Request 
+export const updateBookingRequest = handleUpdateBookingRequest;
+
+//Booking Request Triggers Functions 
+export const onCreateBookingRequestTrigger = bookingRequestOnCreateTrigger;
+export const onUpdateBookingRequestTrigger = bookingRequestOnUpdateCreateTrigger;
 
