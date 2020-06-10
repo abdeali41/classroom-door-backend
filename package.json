@@ -1,0 +1,10 @@
+{
+  "name": "tcd-backend",
+  "scripts": {
+    "deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:onCreateBookingRequestTrigger"
+  },
+  "engines": {
+    "node": "8"
+  },
+  "private": true
+}
