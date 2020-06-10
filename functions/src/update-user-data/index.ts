@@ -1,5 +1,5 @@
-import { userCollection, firestoreDB } from "..";
-import { defaultAvailable, educationData, weekDay, daySlotTypes } from "../constants";
+import { userCollection, firestoreDB, studentCollection } from "..";
+import { defaultAvailable, educationData, weekDay, daySlotTypes } from "../libs/constants";
 
 
 export const updateUserProfileDetails = async () => {
@@ -7,8 +7,13 @@ export const updateUserProfileDetails = async () => {
     const querySnapshot = await userCollection.get();
     querySnapshot.forEach(doc => {
         const data = doc.data();
+        let newGenderValue: string = data.gender ? data.gender.toUpperCase() : "FEMALE"
+        console.log(`User Gender ::: ${data.id} -- ${data.gender}, ${data.gender.toUpperCase()}, ${newGenderValue}`)
+
+
         batch.set(firestoreDB.collection("usersCopy").doc(doc.id), {
             ...data,
+            gender: newGenderValue
         });
     })
     return batch.commit();
@@ -47,9 +52,19 @@ export const updateTeacherPreference = async () => {
             weeklyAvailability[weekDay[key]] = teacherWeeklyAvailability[key] ? teacherWeeklyAvailability[key].map((item: string) => daySlotTypes[item]) : []
             return weeklyAvailability
         }, {})
+        console.log("teacherCertificateDetails::", doc.id, teacherCertificateDetails)
 
-        const { issuingOrganisation, ...otherTeacherCertificateDetails } = teacherCertificateDetails;
-        const newTeacherCertificateDetails = { ...otherTeacherCertificateDetails, issuingOrganization: issuingOrganisation }
+
+        // const { issuingOrganisation = "", ...otherTeacherCertificateDetails } = teacherCertificateDetails;
+        const newTeacherCertificateDetails =
+        {
+            issuingOrganization: '',
+            expirationDate: '',
+            credentialUrl: '',
+            certificationName: '',
+            credentialId: '',
+            issueDate: ''
+        }
 
         const newData = {
             ...otherData,
@@ -69,8 +84,7 @@ export const updateTeacherPreference = async () => {
                 chargesAfterFreeAdvanceScheduledSessionCancellationHours
             ),
             groupSessionRate: Number(groupSessionRate),
-            oneToOneSessionRate: Number(oneToOneSessionRate),
-            gender: "FEMALE",
+            oneToOneSessionRate: Number(oneToOneSessionRate > 10 ? oneToOneSessionRate : 10),
             teacherEducationQualification: newTeacherEducationQualification,
             userMeta: {
                 favorites: [],    // id array of userIds
@@ -85,9 +99,72 @@ export const updateTeacherPreference = async () => {
             teacherCertificateDetails: newTeacherCertificateDetails,
         };
 
-        batch.set(firestoreDB.collection("teachersCopy").doc(doc.id), newData);
+        batch.set(firestoreDB.collection("teachers").doc(doc.id), newData);
     });
     return batch.commit();
 };
 
+export const updateStudentPreferences = async () => {
+    let batch = firestoreDB.batch();
+    const querySnapshot = await studentCollection.get();
+    querySnapshot.forEach(doc => {
+        const data = doc.data();
+
+        const newData = {
+            ...data,
+            userMeta: {
+                favorites: [],    // id array of userIds
+                ratings: {
+                    average: 0,     // initially zero 
+                    reviews: [],    // id array of Reviews from other collections.
+                },
+                sessionsCompleted: 0,
+            },
+        };
+
+        batch.set(firestoreDB.collection("students").doc(doc.id), newData);
+    });
+    return batch.commit();
+}
+
+
+export const removeAllRoomFromFirestore = async () => {
+    // let batch = firestoreDB.batch();
+    const querySnapshot = await userCollection.get();
+    // const data = querySnapshot.docs.map((docItem: any) => {
+    //     console.log(`Data :::docItem)
+    //     return userCollection.doc(docItem.userId).collection('rooms').get()
+    //         .then(subCollection => {
+    //             if (subCollection.docs.length > 0) {
+    //                 console.log(`Document Id :: ${docItem.userId} ::: ${subCollection.docs.length}`)
+    //             }
+    //         })
+    // })
+    // return data;
+
+
+
+    const getUsersRef = () => userCollection;
+    const getUserRef = (userId: string) => getUsersRef().doc(userId);
+    const getUserRoomsRef = (userId: string) => getUserRef(userId).collection('rooms');
+
+    querySnapshot.docs.map(async (docItem: any) => {
+        console.log(`Data ::: ${docItem}`)
+        const userRoomsQuery = await getUserRoomsRef(docItem.userId)
+            // .orderBy('createdAt', 'desc')
+            .get();
+        const userRoomIds: any[] = [];
+        const userRoomsMap: any = {};
+
+        userRoomsQuery.docs.forEach(doc => {
+            const data = doc.data();
+            userRoomsMap[doc.id] = data;
+            userRoomIds.push(doc.id);
+        });
+        console.log(`USer:: ${docItem.userId} :: rooms:: ${userRoomIds} `)
+        return { user: docItem.userId, roomsIds: userRoomIds, rooms: userRoomsMap }
+
+    })
+    return {}
+}
 

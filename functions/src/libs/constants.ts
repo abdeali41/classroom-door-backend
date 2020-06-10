@@ -1,4 +1,17 @@
 
+export const firestoreCollectionKeys = {
+    USERS: 'users',
+    TEACHERS: 'teachers',
+    STUDENTS: 'students',
+    USER_META: 'user-meta',
+    BOOKING_REQUEST: 'booking-request',
+    SESSION_EVENTS: 'session-events',
+}
+
+export const userMetaSubCollectionKeys = {
+    BOOKING_REQUESTS: 'booking-requests',
+}
+
 export const educationData =
     [
         { id: 'UNDERGRADUATE_STUDENT', name: 'Undergraduate Student', value: 2 },
@@ -48,4 +61,11 @@ export const SortTypes = {
 export const sortOrderOptions = {
     ASCENDING: "asc",
     DESCENDING: "desc"
-}
+};
+
+// Types of Epicboard Sessions
+export const SESSION_TYPES = {
+    SINGLE: "SINGLE",
+    GROUP: "GROUP"
+};
+
