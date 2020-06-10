@@ -7,10 +7,9 @@ import {
 import {
     userMetaSubCollectionKeys,
     firestoreCollectionKeys,
-    BOOKING_REQUEST_STATUS_CODES,
     SESSION_TYPES,
 } from "../libs/constants";
-
+import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 
 // type createBookingRequestDataType = {
 //     teacherId: string,
