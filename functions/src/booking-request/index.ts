@@ -9,7 +9,7 @@ import {
     firestoreCollectionKeys,
     BOOKING_REQUEST_STATUS_CODES,
     SESSION_TYPES,
-} from "../constants";
+} from "../libs/constants";
 
 
 // type createBookingRequestDataType = {
@@ -167,7 +167,7 @@ export const updateUserBookingRequest = (data: updateBookingRequestsDataType) =>
 }
 
 // Booking Request OnCreate Trigger - (triggers when student created a booking request)
-export const bookingRequestOnCreateTrigger = functions
+export const triggerOnCreateBookingRequest = functions
     .firestore
     .document(`${firestoreCollectionKeys.BOOKING_REQUEST}/{bookingRequestId}`)
     .onCreate(async (bookingRequestSnap, context) => {
@@ -208,7 +208,7 @@ export const bookingRequestOnCreateTrigger = functions
 
 //
 
-export const bookingRequestOnUpdateCreateTrigger = functions
+export const triggerOnUpdateBookingRequest = functions
     .firestore
     .document(`${firestoreCollectionKeys.BOOKING_REQUEST}/{bookingRequestId}`)
     .onUpdate(async (bookingRequestSnap, context) => {

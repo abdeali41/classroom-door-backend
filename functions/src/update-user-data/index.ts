@@ -1,5 +1,5 @@
 import { userCollection, firestoreDB, studentCollection } from "..";
-import { defaultAvailable, educationData, weekDay, daySlotTypes } from "../constants";
+import { defaultAvailable, educationData, weekDay, daySlotTypes } from "../libs/constants";
 
 
 export const updateUserProfileDetails = async () => {

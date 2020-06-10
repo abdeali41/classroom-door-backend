@@ -24,12 +24,12 @@ import {
   handleGetUserBookingRequest,
   handleGetBookingById,
   handleUpdateBookingRequest,
-  bookingRequestOnCreateTrigger,
-  bookingRequestOnUpdateCreateTrigger
+  triggerOnCreateBookingRequest,
+  triggerOnUpdateBookingRequest
 } from "./booking-request";
 
 // Firestore Collections
-import { firestoreCollectionKeys } from "./constants";
+import { firestoreCollectionKeys } from "./libs/constants";
 export const firestoreDB = admin.firestore();
 export const userCollection = firestoreDB.collection(firestoreCollectionKeys.USERS);
 export const teacherCollection = firestoreDB.collection(firestoreCollectionKeys.TEACHERS);
@@ -175,6 +175,6 @@ export const getBookingRequestById = handleGetBookingById;
 export const updateBookingRequest = handleUpdateBookingRequest;
 
 //Booking Request Triggers Functions 
-export const onCreateBookingRequestTrigger = bookingRequestOnCreateTrigger;
-export const onUpdateBookingRequestTrigger = bookingRequestOnUpdateCreateTrigger;
+export const onCreateBookingRequestTrigger = triggerOnCreateBookingRequest;
+export const onUpdateBookingRequestTrigger = triggerOnUpdateBookingRequest;
 

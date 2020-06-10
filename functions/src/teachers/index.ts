@@ -1,5 +1,5 @@
 import { teacherCollection, userCollection } from "..";
-import { SortTypes, defaultAvailable } from "../constants";
+import { SortTypes, defaultAvailable } from "../libs/constants";
 
 export const getTeacherDataWithFilters = async (filters: any) => {
     let queryRef: FirebaseFirestore.Query = teacherCollection;
