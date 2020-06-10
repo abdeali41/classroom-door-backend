@@ -31,7 +31,7 @@ export const handleCreateBookingRequest = functions.https.onRequest(async (reque
     // add the id to user's booking request array
 
     const { teacherId, studentId, teacherName, studentName, teacherHourlyRate, totalSessionLength, sessionRequests, teacherGroupSessionRate } = request.body;
-    const initialRequest = sessionRequests.reduce((newSlotRequest, newItem) => ({
+    const initialRequest = sessionRequests.reduce((newSlotRequest: any, newItem: any) => ({
         ...newSlotRequest,
         [`${newItem.date}-${newItem.selectedBreak}`]: {
             selectedBreak: newItem.selectedBreak,
@@ -87,7 +87,7 @@ export const handleCreateBookingRequest = functions.https.onRequest(async (reque
 })
 
 // Fetch Functions Booking Request for user
-const getAllBookingForUser = async (userId) => {
+const getAllBookingForUser = async (userId: string) => {
     const userBookingsSnapshot = await userEventCollection
         .doc(userId)
         .collection(userMetaSubCollectionKeys.BOOKING_REQUESTS)
