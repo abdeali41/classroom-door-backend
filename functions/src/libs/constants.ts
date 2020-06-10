@@ -69,13 +69,3 @@ export const SESSION_TYPES = {
     GROUP: "GROUP"
 };
 
-// Status Codes
-// Booking Requests Status
-export const BOOKING_REQUEST_STATUS_CODES = {
-    WAITING_FOR_TEACHER_CONFIRMATION: 0,
-    WAITING_FOR_STUDENT_CONFIRMATION: 1,
-    ACCEPTED: 2,
-    REJECTED: 3,
-    EXPIRED: 4,
-}
-
