@@ -178,3 +178,5 @@ export const updateBookingRequest = handleUpdateBookingRequest;
 export const onCreateBookingRequestTrigger = triggerOnCreateBookingRequest;
 export const onUpdateBookingRequestTrigger = triggerOnUpdateBookingRequest;
 
+// Get user image
+export const userImage = getUserImage;

@@ -27,7 +27,17 @@ export const getRoomMembers = functions.https.onRequest(
 		res.status(200).json({
 			success: true,
 			message: "Room members!",
-			roomMembers: roomMembers
+			roomMembers: roomMembers,
 		});
 	}
 );
+
+export const getUserImage = functions.https.onRequest(async (req, res) => {
+	const userId: any = req.query.userId;
+	const userSnapshot = await userCollection.doc(userId).get();
+	const user: any = userSnapshot.data();
+	const profilePic = user.profilePic || {};
+	const downloadUrl = profilePic.downloadURL || "";
+
+	res.redirect(downloadUrl);
+});
