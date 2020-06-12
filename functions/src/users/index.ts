@@ -36,8 +36,8 @@ export const getUserImage = functions.https.onRequest(async (req, res) => {
 	const userId: any = req.query.userId;
 	const userSnapshot = await userCollection.doc(userId).get();
 	const user: any = userSnapshot.data();
-	const profilePic = user.profilePic || {};
-	const downloadUrl = profilePic.downloadURL || "";
+	const { profilePic = {} } = user;
+	const { downloadUrl = "" } = profilePic;
 
 	res.redirect(downloadUrl);
 });
