@@ -107,24 +107,7 @@ export const handleCreateBookingRequest = functions.https.onRequest(async (reque
         },
     }), {});
 
-    const requestThread: requestThreadMapType = {
-        [new Date().getTime().toString()]: addCreationTimeStamp<requestThreadObjectType>({
-            teacherComment: "",
-            studentComment: "",
-            slots: Object.keys(initialRequest).reduce((slotsObj, newKey) => {
-                return {
-                    ...slotsObj,
-                    [newKey]: {
-                        sessionLength: initialRequest[newKey].sessionLength,
-                        suggestedDateTime: "",
-                        studentAccepted: false,
-                        deleted: false
-                    }
-                }
-            }, {})
-
-        })
-    };
+    const requestThread: requestThreadMapType = {};
     const bookingRequestId = generateUniqueID()
     const bookingRequest: bookingRequestType = addCreationTimeStamp<bookingRequestType>({
         id: bookingRequestId,
