@@ -11,6 +11,8 @@ import * as Students from "./students";
 import * as Messages from "./messages";
 import * as UpdateUser from "./update-user-data";
 import * as Booking from "./booking-request";
+import * as EpicBoardSessions from './epicboard-sessions';
+import * as EpicBoardRooms from './epicboard-rooms';
 import * as Notification from "./notifications";
 
 /** USER APIS **/
@@ -54,12 +56,38 @@ export const getBookingRequests = Booking.handleGetUserBookingRequest;
 export const getBookingRequestById = Booking.handleGetBookingById;
 // UPDATE BOOKING REQUEST
 export const updateBookingRequest = Booking.handleUpdateBookingRequest;
-// BOOKING REQUEST TRIGGER  FOR ONCREATE BOOKING REQUEST
+// BOOKING REQUEST TRIGGER FOR ON CREATE BOOKING REQUEST
 export const onCreateBookingRequestTrigger =
 	Booking.triggerOnCreateBookingRequest;
-// BOOKING REQUEST TRIGGER  FOR ONUPDATE BOOKING REQUEST
+// BOOKING REQUEST TRIGGER FOR ON UPDATE BOOKING REQUEST
 export const onUpdateBookingRequestTrigger =
 	Booking.triggerOnUpdateBookingRequest;
+
+
+
+
+/** EPICBOARD SESSIONS APIS **/
+
+// No Create API - triggered from Booking Request Triggers
+
+// FETCH EPICBOARD SESSIONS
+export const getEpicboardSessions = EpicBoardSessions.handleGetUserEpicboardSession;
+// EPICBOARD SESSIONS TRIGGER FOR ON CREATE BOOKING REQUEST
+export const onCreateEpicboardSessionTrigger = EpicBoardSessions.triggerOnCreateEpicboardSession;
+// EPICBOARD SESSIONS TRIGGER FOR ON UPDATE BOOKING REQUEST
+export const onUpdateEpicboardSessionTrigger = EpicBoardSessions.triggerOnUpdateEpicboardSession;
+
+
+/** EPICBOARD ROOM APIS **/
+// No Create API - triggered from Booking Request & Epicboard Session Triggers
+
+// FETCH EPICBOARD SESSIONS
+// export const getEpicboardRooms = EpicBoardRooms.handleGetUserEpicboardRoom;	// Not Yet Implemented
+// EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
+export const onCreateEpicboardRoomTrigger = EpicBoardRooms.triggerOnCreateEpicboardRoom;
+// EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
+// export const onUpdateEpicboardRoomTrigger = EpicBoardRooms.triggerOnUpdateEpicboardRoom;	// Not Yet Implemented
+
 
 /** MESSAGING APIS **/
 

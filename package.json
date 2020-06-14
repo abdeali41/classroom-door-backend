@@ -1,7 +1,9 @@
 {
   "name": "tcd-backend",
   "scripts": {
-    "deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:onCreateBookingRequestTrigger"
+    "deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger",
+    "deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger",
+    "deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger"
   },
   "engines": {
     "node": "10"

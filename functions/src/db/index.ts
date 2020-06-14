@@ -14,7 +14,7 @@ export const studentCollection = firestoreDB.collection(
 	firestoreCollectionKeys.STUDENTS
 );
 export const bookingRequestCollection = firestoreDB.collection(
-	firestoreCollectionKeys.BOOKING_REQUEST
+	firestoreCollectionKeys.BOOKING_REQUESTS
 );
 export const userEventCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USER_META
