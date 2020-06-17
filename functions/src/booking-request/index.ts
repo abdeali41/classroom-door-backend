@@ -143,7 +143,9 @@ const getAllBookingForUser = async (userId: string) => {
     const userBookingsSnapshot = await userEventCollection
         .doc(userId)
         .collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
+        .where("status", "<=", BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_STUDENT_CONFIRMATION)
         .get();
+
     const allBookingData = userBookingsSnapshot.docs.map(async bookingRequestDoc => {
         const bookingRequestData = bookingRequestDoc.data();
         return bookingRequestCollection.
@@ -228,14 +230,13 @@ const getData_AcceptBookingRequestByStudent = (
 
     const { requestThread } = existingBookingRequestObject;
     const { latestRequestKey, latestRequestMap } = getLastRequestObject(requestThread);
-    const newRequestThreadObject: requestThreadMapType = addModifiedTimeStamp<requestThreadMapType>({
+    const newRequestThreadObject: requestThreadMapType = {
         ...requestThread,
         [latestRequestKey]: {
             ...latestRequestMap,
             studentComment,
         }
-    });
-
+    };
 
     return addModifiedTimeStamp<bookingRequestType>({
         ...existingBookingRequestObject,
@@ -264,14 +265,14 @@ const getData_RequestChangesByStudent = (
         }
     }, {});
 
-    const newRequestThreadMapObject: requestThreadMapType = addModifiedTimeStamp<requestThreadMapType>({
+    const newRequestThreadMapObject: requestThreadMapType = {
         ...requestThread,
         [latestRequestKey]: {
             ...latestRequestMap,
             studentComment,
             slots: updatedSlotsObject,
         }
-    });
+    };
 
     return addModifiedTimeStamp<bookingRequestType>({
         ...existingBookingRequestObject,
