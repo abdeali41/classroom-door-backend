@@ -52,7 +52,9 @@ export const bookingRequestCollection = firestoreDB.collection(
 export const userEventCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USER_META
 );
-export const notificationCollection = firestoreDB.collection("notifications");
+export const notificationCollection = firestoreDB.collection(
+	firestoreCollectionKeys.NOTIFICATIONS
+);
 
 // Get Users
 export const users = functions.https.onCall(

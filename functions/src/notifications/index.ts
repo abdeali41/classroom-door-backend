@@ -1,15 +1,8 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { notificationCollection, userCollection } from "..";
-
-const notificationTypes = {
-	text: "text",
-	image: "image",
-};
-const chatTypes = {
-	ROOM_CHATS: "room-chats",
-	GROUP_CHATS: "group-chats",
-};
+import { chatTypes, notificationTypes } from "../libs/constants";
+import { capitalizeName } from "../libs/generics";
 
 interface Notification {
 	senderId: string;
@@ -21,12 +14,6 @@ interface Notification {
 	sentAt: object;
 	createdAt: object;
 }
-
-const capitalizeName = (firstName: String, lastName: String) => {
-	return `${firstName[0].toUpperCase() + firstName.slice(1).toLowerCase()} ${
-		lastName[0].toUpperCase() + lastName.slice(1).toLowerCase()
-	}.`;
-};
 
 export const sendNewMessageNotification = functions.database
 	.ref(`chats/{chatType}/{chatId}/conversation/{messageId}`)
