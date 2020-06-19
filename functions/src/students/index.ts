@@ -1,19 +1,42 @@
 import * as functions from "firebase-functions";
 import { studentCollection, userCollection } from "..";
 
-export const getAllStudents = async () => {
-	const studentPreferencesSnapshot = await studentCollection.get();
+export const getAllStudents = functions.https.onRequest(
+	async (req: any, res: any) => {
+		const usersQuery = await userCollection
+			.where("userType", "==", "Student")
+			.get();
 
-	const allStudentsData = studentPreferencesSnapshot.docs.map(studentDoc => {
-		const studentDetails = studentDoc.data();
-		const userID = studentDetails.userId;
-		return userCollection
-			.doc(userID)
-			.get()
-			.then(data => ({ ...studentDetails, ...data.data() }));
-	});
-	return Promise.all(allStudentsData);
-};
+		const userIds: Array<string> = [];
+		const userMap: any = {};
+
+		usersQuery.docs.forEach((doc) => {
+			const data = doc.data();
+			data.id = doc.id;
+			userMap[doc.id] = data;
+			userIds.push(doc.id);
+		});
+
+		const studentQuery = await studentCollection.get();
+
+		studentQuery.docs.forEach((doc) => {
+			const studentData = doc.data();
+
+			if (studentData.userId) {
+				userMap[studentData.userId] = {
+					...userMap[studentData.userId],
+					...studentData,
+				};
+			}
+		});
+
+		res.json({
+			success: true,
+			message: "Fetched list of all students!",
+			students: Object.values(userMap),
+		});
+	}
+);
 
 export const toggleMarkAsFavorite = functions.https.onRequest(
 	async (req: any, res: any) => {
@@ -36,19 +59,19 @@ export const toggleMarkAsFavorite = functions.https.onRequest(
 		studentDoc
 			.update({
 				userMeta: student.userMeta,
-				studentEducationStatus: "Educated"
+				studentEducationStatus: "Educated",
 			})
 			.then(() =>
 				res.json({
 					success: true,
 					message: "Mark as favorite status changed!",
-					favorites: userMeta.favorites
+					favorites: userMeta.favorites,
 				})
 			)
-			.catch(err =>
+			.catch((err) =>
 				res.json({
 					success: false,
-					message: err
+					message: err,
 				})
 			);
 	}
