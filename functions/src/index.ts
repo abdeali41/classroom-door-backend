@@ -1,15 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { getTeacherDataWithFilters } from "./teachers";
-
-const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
-// Init Block
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
-	databaseURL: "https://classroom-door.firebaseio.com",
-});
-
-// import { } from './subjects';
 import {
 	getAllUsers,
 	getUsersById,
@@ -32,10 +23,20 @@ import {
 	triggerOnCreateBookingRequest,
 	triggerOnUpdateBookingRequest,
 } from "./booking-request";
+import { sendNewMessageNotification } from "./notifications";
+
+const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: "https://classroom-door.firebaseio.com",
+});
 
 // Firestore Collections
 import { firestoreCollectionKeys } from "./libs/constants";
 export const firestoreDB = admin.firestore();
+export const realtimeDB = admin.database();
+export const fcmMessaging = admin.messaging();
 export const userCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USERS
 );
@@ -50,6 +51,9 @@ export const bookingRequestCollection = firestoreDB.collection(
 );
 export const userEventCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USER_META
+);
+export const notificationCollection = firestoreDB.collection(
+	firestoreCollectionKeys.NOTIFICATIONS
 );
 
 // Get Users
@@ -190,3 +194,9 @@ export const userImage = getUserImage;
 export const createGroupChat = Messages.createGroupChat;
 //To get all recent chats of user
 export const getMessagingList = Messages.getMessagingList;
+//////////NOTIFICATION AREA/////////////
+
+// For sending push notification when user sends message
+export const newMessageNotification = sendNewMessageNotification;
+
+//////////NOTIFICATION AREA/////////////
