@@ -1,8 +1,8 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { notificationCollection, userCollection } from "..";
 import { chatTypes, notificationTypes } from "../libs/constants";
 import { capitalizeName } from "../libs/generics";
+import { userCollection, notificationCollection } from "../db";
 
 interface Notification {
 	senderId: string;
