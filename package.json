@@ -4,7 +4,7 @@
     "deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:onCreateBookingRequestTrigger"
   },
   "engines": {
-    "node": "8"
+    "node": "10"
   },
   "private": true
 }
