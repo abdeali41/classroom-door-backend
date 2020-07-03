@@ -10,67 +10,65 @@ import * as Users from "./users";
 import * as Students from "./students";
 import * as Messages from "./messages";
 import * as UpdateUser from "./update-user-data";
-import {
-	handleCreateBookingRequest,
-	handleGetUserBookingRequest,
-	handleGetBookingById,
-	handleUpdateBookingRequest,
-	triggerOnCreateBookingRequest,
-	triggerOnUpdateBookingRequest,
-} from "./booking-request";
-import { sendNewMessageNotification } from "./notifications";
+import * as Booking from "./booking-request";
+import * as Notification from "./notifications";
 
-// Get Users
+/** USER APIS **/
+
+// GET USERS
 export const users = Users.getUsers;
-
-// Get Teachers
-export const teachers = Teachers.getTeacherDataWithFilters;
-export const getTeachersAPI = Teachers.getTeacherDataWithFilters;
-
-// Get Students
-// Get Students
-export const students = Students.getAllStudents;
-
-// Update API Calls
-// User Details
-export const fixTeacherPreferences = UpdateUser.updateTeacherPreference;
-export const updateUserData = UpdateUser.updateUserProfileDetails;
-
-// FOR CHANGING MARK AS FAVORITE STATUS
-export const toggleMarkAsFavourite = Students.toggleMarkAsFavorite;
-export const fixStudentPreferences = UpdateUser.updateStudentPreferences;
-
 // TO GET ALL USERS THAT BELONGS TO A PARTICULAR ROOM AND ALSO RETURN REMAINING USERS
 export const roomMembers = Users.getRoomMembers;
+// GET USER IMAGE
+export const userImage = Users.getUserImage;
 
+/** UPDATE USER APIS **/
+
+export const fixTeacherPreferences = UpdateUser.updateTeacherPreference;
+export const updateUserData = UpdateUser.updateUserProfileDetails;
+export const fixStudentPreferences = UpdateUser.updateStudentPreferences;
 export const deleteAllRooms = UpdateUser.removeAllRoomFromFirestore;
 
-// Booking Request APIs
-// Create Booking Request
-export const createBookingRequest = handleCreateBookingRequest;
+/** STUDENT APIS **/
 
-// Fetch Booking Request
-export const getBookingRequests = handleGetUserBookingRequest;
-export const getBookingRequestById = handleGetBookingById;
+// Get Students
+export const students = Students.getAllStudents; //To be deleted
+export const getStudents = Students.getAllStudents;
+// FOR CHANGING MARK AS FAVORITE STATUS
+export const toggleMarkAsFavourite = Students.toggleMarkAsFavorite; // To be deleted
+export const toggleMarkAsFavorite = Students.toggleMarkAsFavorite;
 
-// Update Booking Request
-export const updateBookingRequest = handleUpdateBookingRequest;
+/** TEACHER APIS **/
 
-//Booking Request Triggers Functions
-export const onCreateBookingRequestTrigger = triggerOnCreateBookingRequest;
-export const onUpdateBookingRequestTrigger = triggerOnUpdateBookingRequest;
+// Get Teachers
+export const getTeachersAPI = Teachers.getTeacherDataWithFilters; // To be deleted
+export const getTeachers = Teachers.getTeacherDataWithFilters;
 
-// Get user image
-export const userImage = Users.getUserImage;
-//Messaging
+/** BOOKING APIS **/
 
-//To create chat group between users
+// CREATE BOOKING REQUEST
+export const createBookingRequest = Booking.handleCreateBookingRequest;
+// FETCH BOOKING REQUEST
+export const getBookingRequests = Booking.handleGetUserBookingRequest;
+// FETCH BOOKING REQUEST BY ID
+export const getBookingRequestById = Booking.handleGetBookingById;
+// UPDATE BOOKING REQUEST
+export const updateBookingRequest = Booking.handleUpdateBookingRequest;
+// BOOKING REQUEST TRIGGER  FOR ONCREATE BOOKING REQUEST
+export const onCreateBookingRequestTrigger =
+	Booking.triggerOnCreateBookingRequest;
+// BOOKING REQUEST TRIGGER  FOR ONUPDATE BOOKING REQUEST
+export const onUpdateBookingRequestTrigger =
+	Booking.triggerOnUpdateBookingRequest;
+
+/** MESSAGING APIS **/
+
+// TO CREATE CHAT GROUP BETWEEN USERS
 export const createGroupChat = Messages.createGroupChat;
-//To get all recent chats of user
+// TO GET ALL RECENT CHATS OF USERS
 export const getMessagingList = Messages.getMessagingList;
-//////////NOTIFICATION AREA/////////////
 
-// For sending push notification when user sends message
-export const newMessageNotification = sendNewMessageNotification;
+/** NOTIFICATION APIS **/
 
-//////////NOTIFICATION AREA/////////////
+// FOR SENDING PUSH NOTIFICATIONS WHEN USER SENDS MESSAGE
+export const newMessageNotification = Notification.sendNewMessageNotification;

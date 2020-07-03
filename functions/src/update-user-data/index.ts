@@ -9,11 +9,11 @@ import { firestoreDB, userCollection, studentCollection } from "../db";
 
 export const updateUserProfileDetails = functions.https.onRequest(
 	async (request: any, response: any) => {
-		let batch = firestoreDB.batch();
+		const batch = firestoreDB.batch();
 		const querySnapshot = await userCollection.get();
 		querySnapshot.forEach((doc) => {
 			const data = doc.data();
-			let newGenderValue: string = data.gender
+			const newGenderValue: string = data.gender
 				? data.gender.toUpperCase()
 				: "FEMALE";
 			console.log(
@@ -37,7 +37,7 @@ export const updateUserProfileDetails = functions.https.onRequest(
 
 export const updateTeacherPreference = functions.https.onRequest(
 	async (request: any, response: any) => {
-		let batch = firestoreDB.batch();
+		const batch = firestoreDB.batch();
 		const querySnapshot = await firestoreDB.collection("teachers").get();
 		querySnapshot.forEach((doc) => {
 			const data = doc.data();
@@ -143,7 +143,7 @@ export const updateTeacherPreference = functions.https.onRequest(
 
 export const updateStudentPreferences = functions.https.onRequest(
 	async (request: any, response: any) => {
-		let batch = firestoreDB.batch();
+		const batch = firestoreDB.batch();
 		const querySnapshot = await studentCollection.get();
 		querySnapshot.forEach((doc) => {
 			const data = doc.data();
