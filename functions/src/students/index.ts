@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { studentCollection, userCollection } from "..";
+import { studentCollection, userCollection } from "../db";
 
 export const getAllStudents = functions.https.onRequest(
 	async (req: any, res: any) => {
@@ -51,8 +51,8 @@ export const toggleMarkAsFavorite = functions.https.onRequest(
 			userMeta.favorites === undefined
 				? [teacherId]
 				: userMeta.favorites.includes(teacherId)
-					? student.userMeta.favorites.filter((f: String) => f !== teacherId)
-					: [teacherId];
+				? student.userMeta.favorites.filter((f: String) => f !== teacherId)
+				: [teacherId];
 
 		student.userMeta = userMeta;
 

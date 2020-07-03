@@ -2,13 +2,13 @@
 
 export const getServerTimeStamp = () => new Date();
 
-export const addCreationTimeStamp = (docData) => ({
+export const addCreationTimeStamp = (docData: Object) => ({
 	...docData,
 	creationTime: getServerTimeStamp(),
 	modifiedTime: getServerTimeStamp(),
 });
 
-export const addModifiedTimeStamp = (docData) => ({
+export const addModifiedTimeStamp = (docData: Object) => ({
 	...docData,
 	modifiedTime: getServerTimeStamp(),
 });
