@@ -1,6 +1,6 @@
 
 import * as functions from "firebase-functions";
-import { firestoreDB, epicboardSessionCollection, userEventCollection } from ".."
+import { firestoreDB, epicboardSessionCollection, userMetaCollection } from ".."
 import {
     userMetaSubCollectionKeys,
     firestoreCollectionKeys,
@@ -106,7 +106,7 @@ export const createEpicboardSession = async (
 
 // Fetch Functions Booking Request for user
 const getAllEpicboardSessionsForUser = async (userId: string) => {
-    const userEpicboardSessionsSnapshot = await userEventCollection
+    const userEpicboardSessionsSnapshot = await userMetaCollection
         .doc(userId)
         .collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
         .get();
@@ -159,7 +159,7 @@ export const updateEpicboardSessionStatus = async (
     });
 
     [studentId, teacherId].map(userId => {
-        batchWrite.set(userEventCollection
+        batchWrite.set(userMetaCollection
             .doc(userId)
             .collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
             .doc(epicboardSessionId),

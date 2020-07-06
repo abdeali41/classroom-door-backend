@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { firestoreDB, epicboardRoomCollection, userEventCollection } from ".."
+import { firestoreDB, epicboardRoomCollection, userMetaCollection } from ".."
 
 import {
     userMetaSubCollectionKeys,
@@ -87,7 +87,7 @@ const updateEpicboardRoomStatus = async (
 
     // Updating for all members
     memberIdList.map(memberId => {
-        batchWrite.set(userEventCollection
+        batchWrite.set(userMetaCollection
             .doc(memberId)
             .collection(userMetaSubCollectionKeys.EPICBOARD_ROOM)
             .doc(epicboardRoomId),

@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { bookingRequestCollection, userEventCollection, firestoreDB } from "../db";
+import { bookingRequestCollection, userMetaCollection, firestoreDB } from "../db";
 import {
     addCreationTimeStamp,
     pushAsSuccessResponse,
@@ -140,7 +140,7 @@ export const handleCreateBookingRequest = functions.https.onRequest(async (reque
 
 // Fetch Functions Booking Request for user
 const getAllBookingForUser = async (userId: string) => {
-    const userBookingsSnapshot = await userEventCollection
+    const userBookingsSnapshot = await userMetaCollection
         .doc(userId)
         .collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
         .where("status", "<=", BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_STUDENT_CONFIRMATION)
@@ -423,7 +423,7 @@ export const updateBookingRequestStatus = async (
     });
 
     [studentId, teacherId].map(userId => {
-        batchWrite.set(userEventCollection
+        batchWrite.set(userMetaCollection
             .doc(userId)
             .collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
             .doc(bookingRequestId),
