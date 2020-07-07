@@ -43,8 +43,8 @@ export const toggleMarkAsFavorite = Students.toggleMarkAsFavorite;
 /** TEACHER APIS **/
 
 // Get Teachers
-export const getTeachersAPI = Teachers.getTeacherDataWithFilters; // To be deleted
-export const getTeachers = Teachers.getTeacherDataWithFilters;
+export const getTeachersAPI = Teachers.getTeacherData; // To be deleted
+export const getTeachers = Teachers.getTeacherData;
 
 /** BOOKING APIS **/
 
