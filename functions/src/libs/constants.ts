@@ -3,14 +3,18 @@ export const firestoreCollectionKeys = {
 	TEACHERS: "teachers",
 	STUDENTS: "students",
 	USER_META: "user-meta",
-	BOOKING_REQUEST: "booking-request",
-	SESSION_EVENTS: "session-events",
+	BOOKING_REQUESTS: 'booking-requests',
+    EPICBOARD_SESSIONS: 'epicboard-sessions',
+    EPICBOARD_ROOMS: 'epicboard-rooms',
 	NOTIFICATIONS: "notifications",
 };
 
+
 export const userMetaSubCollectionKeys = {
-	BOOKING_REQUESTS: "booking-requests",
-};
+    BOOKING_REQUEST: 'booking-request',
+    EPICBOARD_SESSION: 'epicboard-session',
+    EPICBOARD_ROOM: 'epicboard-room'
+}
 
 export const educationData = [
 	{ id: "UNDERGRADUATE_STUDENT", name: "Undergraduate Student", value: 2 },
