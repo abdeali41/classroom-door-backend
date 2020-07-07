@@ -1,12 +1,17 @@
 {
-  "name": "tcd-backend",
-  "scripts": {
-    "deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger",
-    "deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger",
-    "deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger"
-  },
-  "engines": {
-    "node": "10"
-  },
-  "private": true
+	"name": "tcd-backend",
+	"scripts": {
+		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage",
+		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers",
+		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavourite,functions:toggleMarkAsFavorite",
+		"deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger",
+		"deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger",
+		"deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger",
+		"deploy-messages-apis": "firebase deploy --only functions:createGroupChat,functions:getMessagingList",
+		"deploy-notification-apis": "firebase deploy --only functions:newMessageNotification"
+	},
+	"engines": {
+		"node": "10"
+	},
+	"private": true
 }
