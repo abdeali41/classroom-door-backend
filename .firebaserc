@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "classroom-door"
+    "default": "classroom-door",
+    "production": "classroom-door-prod"
   }
 }

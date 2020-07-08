@@ -1,14 +1,15 @@
 {
 	"name": "tcd-backend",
 	"scripts": {
-		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage",
-		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers",
-		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavourite,functions:toggleMarkAsFavorite",
-		"deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger",
-		"deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger",
-		"deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger",
-		"deploy-messages-apis": "firebase deploy --only functions:createGroupChat,functions:getMessagingList",
-		"deploy-notification-apis": "firebase deploy --only functions:newMessageNotification"
+		"deploy-all-apis": "firebase deploy --only functions -P ${DEPLOY:-default}",
+		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage -P ${DEPLOY:-default}",
+		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers -P ${DEPLOY:-default}",
+		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavourite,functions:toggleMarkAsFavorite -P ${DEPLOY:-default}",
+		"deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger -P ${DEPLOY:-default}",
+		"deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger -P ${DEPLOY:-default}",
+		"deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger -P ${DEPLOY:-default}",
+		"deploy-messages-apis": "firebase deploy --only functions:createGroupChat,functions:getMessagingList -P ${DEPLOY:-default}",
+		"deploy-notification-apis": "firebase deploy --only functions:newMessageNotification -P ${DEPLOY:-default}"
 	},
 	"engines": {
 		"node": "10"
