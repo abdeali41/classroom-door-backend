@@ -22,3 +22,9 @@ export const userMetaCollection = firestoreDB.collection(
 export const notificationCollection = firestoreDB.collection(
 	firestoreCollectionKeys.NOTIFICATIONS
 );
+export const epicboardSessionCollection = firestoreDB.collection(
+	firestoreCollectionKeys.EPICBOARD_SESSIONS
+);
+export const epicboardRoomCollection = firestoreDB.collection(
+	firestoreCollectionKeys.EPICBOARD_ROOMS
+);
