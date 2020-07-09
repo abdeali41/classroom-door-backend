@@ -89,6 +89,8 @@ export const onCreateEpicboardRoomTrigger =
 	EpicBoardRooms.triggerOnCreateEpicboardRoom;
 // EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
 // export const onUpdateEpicboardRoomTrigger = EpicBoardRooms.triggerOnUpdateEpicboardRoom;	// Not Yet Implemented
+// EPICBOARD ROOM CREATE WHEN JOINING SESSION
+export const joinEpicboardSession = EpicBoardRooms.handleJoinEpicboardSession;
 
 /** MESSAGING APIS **/
 

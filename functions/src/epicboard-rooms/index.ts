@@ -5,7 +5,11 @@ import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
 } from "../libs/constants";
-import { addModifiedTimeStamp, addCreationTimeStamp } from "../libs/generics";
+import {
+	addModifiedTimeStamp,
+	addCreationTimeStamp,
+	pushAsSuccessResponse,
+} from "../libs/generics";
 import { createdAndModifiedTimeStampTypes } from "../booking-request";
 import { EPICBOARD_ROOM_STATUS_CODES } from "../libs/status-codes";
 
@@ -115,3 +119,12 @@ export const triggerOnCreateEpicboardRoom = functions.firestore
 		console.log("EpicBoard Room Create Trigger::", epicboardRoomData);
 		await updateEpicboardRoomStatus(epicboardRoomId, epicboardRoomData);
 	});
+
+// Create room for joining epicboard session
+export const handleJoinEpicboardSession = functions.https.onRequest(
+	async (request: any, response: any) => {
+		response
+			.status(200)
+			.json(pushAsSuccessResponse("Epicboard Session created", request.body));
+	}
+);
