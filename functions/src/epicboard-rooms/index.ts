@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { firestoreDB, epicboardRoomCollection, userMetaCollection } from "../db"
-
+import { database } from "firebase-admin";
+import * as moment from "moment";
 import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
@@ -9,9 +9,19 @@ import {
 	addModifiedTimeStamp,
 	addCreationTimeStamp,
 	pushAsSuccessResponse,
+	pushAsErrorResponse,
 } from "../libs/generics";
 import { createdAndModifiedTimeStampTypes } from "../booking-request";
 import { EPICBOARD_ROOM_STATUS_CODES } from "../libs/status-codes";
+import {
+	firestoreDB,
+	userMetaCollection,
+	epicboardRoomCollection,
+	epicboardSessionCollection,
+	getRoomMetaRef,
+	getRoomUserRef,
+	getRoomRef,
+} from "../db";
 
 type epicboardRoomActivityType = {
 	[key: string]: {
@@ -121,10 +131,101 @@ export const triggerOnCreateEpicboardRoom = functions.firestore
 	});
 
 // Create room for joining epicboard session
+type RoomInfo = {
+	name: string;
+	presenterIds: string[];
+	ownerId: string;
+	activeBoard: number;
+};
+
+const createRoom = async (roomId: string, roomInfo: RoomInfo) => {
+	const roomMeta = {
+		...roomInfo,
+		id: roomId,
+		createdAt: database.ServerValue.TIMESTAMP,
+	};
+	await getRoomMetaRef(roomId).update(roomMeta);
+	return true;
+};
+
+const addUsersToRoom = async (roomId, users, roomInfo) => {
+	const addUsersToRoomPromise = users.map(async (user) => {
+		await getRoomUserRef(roomId, user).update({ id: user });
+	});
+
+	return Promise.all(addUsersToRoomPromise);
+};
+
+const isRoomExits = (roomId) => {
+	const roomRef = getRoomRef(roomId);
+	return roomRef.once("value").then((snap) => snap.exists());
+};
+
+type JoinEpicboardSessionRequestType = {
+	userId: string;
+	sessionId: string;
+};
+
 export const handleJoinEpicboardSession = functions.https.onRequest(
-	async (request: any, response: any) => {
-		response
+	async (req: any, res: any) => {
+		const { sessionId }: JoinEpicboardSessionRequestType = req.body;
+		const epicboardSessionSnapshot = await epicboardSessionCollection
+			.doc(sessionId)
+			.get();
+
+		const epicboardSession = epicboardSessionSnapshot.data();
+
+		console.log("epicboardSession", epicboardSession);
+
+		const {
+			roomId,
+			teacherId,
+			startTime,
+			sessionLength,
+			subjects,
+		}: any = epicboardSession;
+
+		const startTimeObj = moment(startTime);
+		const currentTime = moment();
+
+		if (startTimeObj.isBefore(currentTime) && sessionLength > 0) {
+			res
+				.status(200)
+				.json(
+					pushAsErrorResponse(
+						"This session in not started yet! Please try again on scheduled time.",
+						400
+					)
+				);
+		}
+
+		const epicboardRoomSnapshot = await epicboardRoomCollection
+			.doc(roomId)
+			.get();
+
+		const epicboardRoom = epicboardRoomSnapshot.data();
+
+		console.log("epicboardRoom", epicboardRoom);
+
+		const { memberIdList }: any = epicboardRoom;
+
+		const isAlreadyCreated = await isRoomExits(roomId);
+
+		if (!isAlreadyCreated) {
+			const roomName = subjects.join(",");
+			const roomInfo = {
+				name: roomName,
+				presenterIds: [teacherId],
+				ownerId: teacherId,
+				activeBoard: 0,
+			};
+
+			await createRoom(roomId, roomInfo);
+			await addUsersToRoom(roomId, memberIdList, roomInfo);
+		}
+
+		res
 			.status(200)
-			.json(pushAsSuccessResponse("Epicboard Session created", request.body));
+			.json(pushAsSuccessResponse("Epicboard Session created", { roomId }));
 	}
 );
