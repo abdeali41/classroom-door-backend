@@ -16,15 +16,15 @@ export const studentCollection = firestoreDB.collection(
 export const bookingRequestCollection = firestoreDB.collection(
 	firestoreCollectionKeys.BOOKING_REQUESTS
 );
-export const userMetaCollection = firestoreDB.collection(
-	firestoreCollectionKeys.USER_META
-);
-export const notificationCollection = firestoreDB.collection(
-	firestoreCollectionKeys.NOTIFICATIONS
-);
 export const epicboardSessionCollection = firestoreDB.collection(
 	firestoreCollectionKeys.EPICBOARD_SESSIONS
 );
 export const epicboardRoomCollection = firestoreDB.collection(
 	firestoreCollectionKeys.EPICBOARD_ROOMS
+);
+export const userMetaCollection = firestoreDB.collection(
+	firestoreCollectionKeys.USER_META
+);
+export const notificationCollection = firestoreDB.collection(
+	firestoreCollectionKeys.NOTIFICATIONS
 );

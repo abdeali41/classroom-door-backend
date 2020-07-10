@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import { firestoreDB, epicboardRoomCollection, userMetaCollection } from "../db"
 
 import {
 	userMetaSubCollectionKeys,
@@ -7,11 +8,6 @@ import {
 import { addModifiedTimeStamp, addCreationTimeStamp } from "../libs/generics";
 import { createdAndModifiedTimeStampTypes } from "../booking-request";
 import { EPICBOARD_ROOM_STATUS_CODES } from "../libs/status-codes";
-import {
-	firestoreDB,
-	userMetaCollection,
-	epicboardRoomCollection,
-} from "../db";
 
 type epicboardRoomActivityType = {
 	[key: string]: {
