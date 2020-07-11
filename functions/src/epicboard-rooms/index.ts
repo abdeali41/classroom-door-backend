@@ -97,7 +97,7 @@ const updateEpicboardRoomStatus = async (
 	const { memberIdList, status, creationTime } = epicboardRoomData;
 	// add  this id to user-event collections user data for both teacher & student
 	// node =>  user-data><studentId/teacherId>/session-events
-	let batchWrite = firestoreDB.batch();
+	const batchWrite = firestoreDB.batch();
 	const sessionEventObject = addModifiedTimeStamp({
 		id: epicboardRoomId,
 		status,

@@ -49,7 +49,7 @@ export const createEpicboardSession = async (
 	bookingData: bookingRequestType,
 	bookingId: string
 ) => {
-	let epicboardSessionBatchWrite = firestoreDB.batch();
+	const epicboardSessionBatchWrite = firestoreDB.batch();
 
 	const {
 		teacherId,
@@ -180,7 +180,7 @@ export const updateEpicboardSessionStatus = async (
 	const { studentId, teacherId, status, creationTime } = epicboardSessionData;
 	// add  this id to user-event collections user data for both teacher & student
 	// node =>  user-data><studentId/teacherId>/session-events
-	let batchWrite = firestoreDB.batch();
+	const batchWrite = firestoreDB.batch();
 	const epicboardSessionObject = addModifiedTimeStamp({
 		id: epicboardSessionId,
 		status,

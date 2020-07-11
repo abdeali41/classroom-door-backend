@@ -3,7 +3,7 @@ import { defaultAvailable } from "../libs/constants";
 import { teacherCollection, userCollection, userMetaCollection } from "../db";
 
 const getTeacherDataWithFilters = async (filters: any) => {
-	let queryRef: FirebaseFirestore.Query = teacherCollection;
+	const queryRef: FirebaseFirestore.Query = teacherCollection;
 	console.log("FilterData = ", filters);
 	if (!filters) {
 		const teacherPreferencesSnapshot = await teacherCollection.get();
@@ -77,7 +77,7 @@ const getTeacherDataWithFilters = async (filters: any) => {
 		let hourlyRateFilterResult = true;
 
 		// Filter Teacher Type
-		if (teacherType && teacherType != "All") {
+		if (teacherType && teacherType !== "All") {
 			teacherTypeFilterResult = itemTeacherType === teacherType;
 		}
 
