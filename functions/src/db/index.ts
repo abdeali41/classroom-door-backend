@@ -32,7 +32,7 @@ export const notificationCollection = firestoreDB.collection(
 );
 
 // REALTIME DATABASE REFS
-export const getRoomsRef = () => realtimeDB.ref("session-rooms");
+export const getRoomsRef = () => realtimeDB.ref("epicboard-rooms");
 export const getRoomRef = (roomId: string) => getRoomsRef().child(roomId);
 export const getRoomMetaRef = (roomId: string) =>
 	getRoomRef(roomId).child("meta");

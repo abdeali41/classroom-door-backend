@@ -5,12 +5,7 @@ import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
 } from "../libs/constants";
-import {
-	addModifiedTimeStamp,
-	addCreationTimeStamp,
-	pushAsSuccessResponse,
-	pushAsErrorResponse,
-} from "../libs/generics";
+import { addModifiedTimeStamp, addCreationTimeStamp } from "../libs/generics";
 import { createdAndModifiedTimeStampTypes } from "../booking-request";
 import { EPICBOARD_ROOM_STATUS_CODES } from "../libs/status-codes";
 import {
@@ -22,6 +17,8 @@ import {
 	getRoomUserRef,
 	getRoomRef,
 } from "../db";
+import SendResponse from "../libs/send-response";
+import { isBetweenInterval } from "../libs/date-utils";
 
 type epicboardRoomActivityType = {
 	[key: string]: {
@@ -175,8 +172,6 @@ export const handleJoinEpicboardSession = functions.https.onRequest(
 
 		const epicboardSession = epicboardSessionSnapshot.data();
 
-		console.log("epicboardSession", epicboardSession);
-
 		const {
 			roomId,
 			teacherId,
@@ -185,18 +180,13 @@ export const handleJoinEpicboardSession = functions.https.onRequest(
 			subjects,
 		}: any = epicboardSession;
 
-		const startTimeObj = moment(startTime);
-		const currentTime = moment();
+		const endTime = moment(startTime).add(sessionLength, "minutes");
 
-		if (startTimeObj.isBefore(currentTime) && sessionLength > 0) {
-			res
-				.status(200)
-				.json(
-					pushAsErrorResponse(
-						"This session in not started yet! Please try again on scheduled time.",
-						400
-					)
-				);
+		if (!isBetweenInterval(startTime, endTime)) {
+			SendResponse(res).failed(
+				"This session is not started yet or completed! Please join on scheduled time."
+			);
+			return;
 		}
 
 		const epicboardRoomSnapshot = await epicboardRoomCollection
@@ -224,8 +214,6 @@ export const handleJoinEpicboardSession = functions.https.onRequest(
 			await addUsersToRoom(roomId, memberIdList, roomInfo);
 		}
 
-		res
-			.status(200)
-			.json(pushAsSuccessResponse("Epicboard Session created", { roomId }));
+		SendResponse(res).success("Epicboard Session created", { roomId });
 	}
 );

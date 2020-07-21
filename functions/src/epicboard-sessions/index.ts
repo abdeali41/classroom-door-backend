@@ -131,6 +131,7 @@ const getAllEpicboardSessionsForUser = async (userId: string) => {
 	const userEpicboardSessionsSnapshot = await userMetaCollection
 		.doc(userId)
 		.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+		.orderBy("creationTime", "desc")
 		.get();
 	const allBookingData = userEpicboardSessionsSnapshot.docs.map(
 		async (epicboardSessionDoc) => {
