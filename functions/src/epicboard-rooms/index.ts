@@ -4,6 +4,8 @@ import * as moment from "moment";
 import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
+	realtimeDBNodes,
+	epicboardRoomSubCollectionKeys,
 } from "../libs/constants";
 import { addModifiedTimeStamp, addCreationTimeStamp } from "../libs/generics";
 import { createdAndModifiedTimeStampTypes } from "../booking-request";
@@ -16,6 +18,7 @@ import {
 	getRoomMetaRef,
 	getRoomUserRef,
 	getRoomRef,
+	getRoomCurrentSessionRef,
 } from "../db";
 import SendResponse from "../libs/send-response";
 import { isBetweenInterval } from "../libs/date-utils";
@@ -203,17 +206,70 @@ export const handleJoinEpicboardSession = functions.https.onRequest(
 
 		if (!isAlreadyCreated) {
 			const roomName = subjects.join(",");
+
 			const roomInfo = {
 				name: roomName,
 				presenterIds: [teacherId],
 				ownerId: teacherId,
 				activeBoard: 0,
+				currentSessionId: sessionId,
 			};
-
 			await createRoom(roomId, roomInfo);
 			await addUsersToRoom(roomId, memberIdList, roomInfo);
+		} else {
+			await getRoomCurrentSessionRef(roomId).set(sessionId);
 		}
 
 		SendResponse(res).success("Epicboard Session created", { roomId });
 	}
 );
+
+export const onUserEpicboardRoomJoinActivityTrigger = functions.database
+	.ref(
+		`${realtimeDBNodes.EPICBOARD_ROOMS}/{roomId}/users/{userId}/devices/{deviceId}`
+	)
+	.onUpdate(async (snapshot, context) => {
+		const status = snapshot.after.val();
+
+		if (!status.offline) {
+			return;
+		}
+
+		const { roomId, userId, deviceId } = context.params;
+
+		const sessionIdRef = await getRoomCurrentSessionRef(roomId).once("value");
+
+		const sessionId = sessionIdRef.val();
+
+		const userActivitySnapshot = await epicboardRoomCollection
+			.doc(roomId)
+			.collection(epicboardRoomSubCollectionKeys.USER_ACTIVITY)
+			.doc(sessionId)
+			.get();
+
+		const userActivity = userActivitySnapshot.data() || {};
+
+		const devices = userActivity[userId] || {};
+
+		const deviceActivity = devices[deviceId] || [];
+
+		const newDeviceActivity = [...deviceActivity, status];
+
+		const newDevices = {
+			...devices,
+			[deviceId]: newDeviceActivity,
+		};
+
+		await epicboardRoomCollection
+			.doc(roomId)
+			.collection(epicboardRoomSubCollectionKeys.USER_ACTIVITY)
+			.doc(sessionId)
+			.set(
+				{
+					[userId]: newDevices,
+				},
+				{ merge: true }
+			);
+
+		return null;
+	});

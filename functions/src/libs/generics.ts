@@ -1,22 +1,22 @@
 // import * as admin from "firebase-admin";
-import { v4 } from 'uuid';
+import { v4 } from "uuid";
 
 export const getServerTimeStamp = () => new Date();
 
 export function addCreationTimeStamp<T>(docData: any): T {
-    return ({
-        ...docData,
-        creationTime: getServerTimeStamp(),
-        modifiedTime: getServerTimeStamp(),
-    })
-};
+	return {
+		...docData,
+		creationTime: getServerTimeStamp(),
+		modifiedTime: getServerTimeStamp(),
+	};
+}
 
 export function addModifiedTimeStamp<T>(docData: any): T {
-    return ({
-        ...docData,
-        modifiedTime: getServerTimeStamp(),
-    })
-};
+	return {
+		...docData,
+		modifiedTime: getServerTimeStamp(),
+	};
+}
 
 export const pushAsSuccessResponse = (message: string, docData: Object) => ({
 	message,

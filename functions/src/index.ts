@@ -91,6 +91,9 @@ export const onCreateEpicboardRoomTrigger =
 // export const onUpdateEpicboardRoomTrigger = EpicBoardRooms.triggerOnUpdateEpicboardRoom;	// Not Yet Implemented
 // EPICBOARD ROOM CREATE WHEN JOINING SESSION
 export const joinEpicboardSession = EpicBoardRooms.handleJoinEpicboardSession;
+// EPICBOARD ROOM TRIGGER FOR SAVING USER ACTIVITY WHEN USER JOINS OR EXIT FROM THE ROOM
+export const onUserEpicboardRoomJoinActivity =
+	EpicBoardRooms.onUserEpicboardRoomJoinActivityTrigger;
 
 /** MESSAGING APIS **/
 
