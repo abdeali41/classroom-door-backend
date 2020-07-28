@@ -273,3 +273,12 @@ export const onUserEpicboardRoomJoinActivityTrigger = functions.database
 
 		return null;
 	});
+
+// This functions requires billing to be enabled
+export const handleRTDEpicboardRoomDeletion = functions
+	.runWith({ memory: "2GB" })
+	.pubsub.schedule("00 03 * * *")
+	.onRun((context) => {
+		console.log("context", context);
+		console.log("This is running every minute", context);
+	});

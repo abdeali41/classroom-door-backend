@@ -95,6 +95,10 @@ export const joinEpicboardSession = EpicBoardRooms.handleJoinEpicboardSession;
 export const onUserEpicboardRoomJoinActivity =
 	EpicBoardRooms.onUserEpicboardRoomJoinActivityTrigger;
 
+// EPICBOARD ROOM CRON TO DELETE ROOM AFTER THE SESSION IS COMPLETED
+export const deleteRTDEpicboardRoom =
+	EpicBoardRooms.handleRTDEpicboardRoomDeletion;
+
 /** MESSAGING APIS **/
 
 // TO CREATE CHAT GROUP BETWEEN USERS
