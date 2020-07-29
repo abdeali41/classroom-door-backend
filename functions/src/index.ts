@@ -11,8 +11,8 @@ import * as Students from "./students";
 import * as Messages from "./messages";
 import * as UpdateUser from "./update-user-data";
 import * as Booking from "./booking-request";
-import * as EpicBoardSessions from './epicboard-sessions';
-import * as EpicBoardRooms from './epicboard-rooms';
+import * as EpicBoardSessions from "./epicboard-sessions";
+import * as EpicBoardRooms from "./epicboard-rooms";
 import * as Notification from "./notifications";
 
 /** USER APIS **/
@@ -45,6 +45,8 @@ export const toggleMarkAsFavorite = Students.toggleMarkAsFavorite;
 // Get Teachers
 export const getTeachersAPI = Teachers.getTeacherData; // To be deleted
 export const getTeachers = Teachers.getTeacherData;
+// FETCH DATA FOR SINGLE TEACHER
+export const getTeacher = Teachers.getTeacher;
 
 /** BOOKING APIS **/
 
@@ -63,20 +65,19 @@ export const onCreateBookingRequestTrigger =
 export const onUpdateBookingRequestTrigger =
 	Booking.triggerOnUpdateBookingRequest;
 
-
-
-
 /** EPICBOARD SESSIONS APIS **/
 
 // No Create API - triggered from Booking Request Triggers
 
 // FETCH EPICBOARD SESSIONS
-export const getEpicboardSessions = EpicBoardSessions.handleGetUserEpicboardSession;
+export const getEpicboardSessions =
+	EpicBoardSessions.handleGetUserEpicboardSession;
 // EPICBOARD SESSIONS TRIGGER FOR ON CREATE BOOKING REQUEST
-export const onCreateEpicboardSessionTrigger = EpicBoardSessions.triggerOnCreateEpicboardSession;
+export const onCreateEpicboardSessionTrigger =
+	EpicBoardSessions.triggerOnCreateEpicboardSession;
 // EPICBOARD SESSIONS TRIGGER FOR ON UPDATE BOOKING REQUEST
-export const onUpdateEpicboardSessionTrigger = EpicBoardSessions.triggerOnUpdateEpicboardSession;
-
+export const onUpdateEpicboardSessionTrigger =
+	EpicBoardSessions.triggerOnUpdateEpicboardSession;
 
 /** EPICBOARD ROOM APIS **/
 // No Create API - triggered from Booking Request & Epicboard Session Triggers
@@ -84,10 +85,10 @@ export const onUpdateEpicboardSessionTrigger = EpicBoardSessions.triggerOnUpdate
 // FETCH EPICBOARD SESSIONS
 // export const getEpicboardRooms = EpicBoardRooms.handleGetUserEpicboardRoom;	// Not Yet Implemented
 // EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
-export const onCreateEpicboardRoomTrigger = EpicBoardRooms.triggerOnCreateEpicboardRoom;
+export const onCreateEpicboardRoomTrigger =
+	EpicBoardRooms.triggerOnCreateEpicboardRoom;
 // EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
 // export const onUpdateEpicboardRoomTrigger = EpicBoardRooms.triggerOnUpdateEpicboardRoom;	// Not Yet Implemented
-
 
 /** MESSAGING APIS **/
 

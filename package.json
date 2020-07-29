@@ -3,7 +3,7 @@
 	"scripts": {
 		"deploy-all-apis": "firebase deploy --only functions -P ${DEPLOY:-default}",
 		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage -P ${DEPLOY:-default}",
-		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers -P ${DEPLOY:-default}",
+		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers,functions:getTeacher -P ${DEPLOY:-default}",
 		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavourite,functions:toggleMarkAsFavorite -P ${DEPLOY:-default}",
 		"deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger -P ${DEPLOY:-default}",
 		"deploy-epicboard-session-apis": "firebase deploy --only functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger -P ${DEPLOY:-default}",

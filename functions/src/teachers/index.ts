@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { defaultAvailable } from "../libs/constants";
-import { teacherCollection, userCollection } from "../db";
+import { teacherCollection, userCollection, userMetaCollection } from "../db";
 
 const getTeacherDataWithFilters = async (filters: any) => {
 	let queryRef: FirebaseFirestore.Query = teacherCollection;
@@ -196,5 +196,31 @@ export const getTeacherData = functions.https.onRequest(
 				});
 			})
 			.catch((err) => console.log("query Failed: ", err));
+	}
+);
+
+export const getTeacher = functions.https.onRequest(
+	async (request: any, response: any) => {
+		const { teacherId } = request.body;
+		const teacherDataSnap = await userCollection.doc(teacherId).get();
+		const teacherMetaDataSnap = await userMetaCollection.doc(teacherId).get();
+		const teacherDetailsDataSnap = await teacherCollection
+			.where("userId", "==", teacherId)
+			.get();
+
+		console.log("teacherDataSnap", teacherDataSnap);
+		console.log("teacherMetaDataSnap", teacherMetaDataSnap);
+		console.log("teacherDetailsDataSnap.docs", teacherDetailsDataSnap.docs);
+
+		const teacher = {
+			...teacherDataSnap.data(),
+			...teacherMetaDataSnap.data(),
+			...teacherDetailsDataSnap.docs[0].data(),
+		};
+
+		response.status(200).json({
+			data: teacher,
+			message: "Query Success",
+		});
 	}
 );
