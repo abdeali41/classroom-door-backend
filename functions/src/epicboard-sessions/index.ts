@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import * as moment from "moment";
 import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
@@ -186,6 +187,7 @@ export const updateEpicboardSessionStatus = async (
 		id: epicboardSessionId,
 		status,
 		creationTime,
+		startTime: moment.utc(startTime).valueOf(),
 		...extraData,
 	});
 
