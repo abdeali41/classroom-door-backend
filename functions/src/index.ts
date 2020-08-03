@@ -78,6 +78,9 @@ export const onCreateEpicboardSessionTrigger =
 // EPICBOARD SESSIONS TRIGGER FOR ON UPDATE BOOKING REQUEST
 export const onUpdateEpicboardSessionTrigger =
 	EpicBoardSessions.triggerOnUpdateEpicboardSession;
+// FETCH UPCOMING EPICBOARD SESSIONS LIMITED
+export const getUpcomingEpicboardSessions =
+	EpicBoardSessions.getUpcomingEpicboardSessions;
 
 /** EPICBOARD ROOM APIS **/
 // No Create API - triggered from Booking Request & Epicboard Session Triggers
