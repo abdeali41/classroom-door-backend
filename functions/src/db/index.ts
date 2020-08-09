@@ -30,6 +30,9 @@ export const userMetaCollection = firestoreDB.collection(
 export const notificationCollection = firestoreDB.collection(
 	firestoreCollectionKeys.NOTIFICATIONS
 );
+export const reviewsCollection = firestoreDB.collection(
+	firestoreCollectionKeys.REVIEWS
+);
 
 // REALTIME DATABASE REFS
 export const getRoomsRef = () =>

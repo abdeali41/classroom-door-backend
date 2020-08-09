@@ -275,3 +275,41 @@ export const triggerOnUpdateEpicboardSession = functions.firestore
 		// When Approved the session details need to be added to the collection.
 		// Trigger new Session object from here when approved.
 	});
+
+// Fetch All tutor and counselors user had sessions with.
+export const getUserTutoredTutorCounselors = functions.https.onRequest(
+	async (req: any, res: any) => {
+		const { userId } = req.body;
+
+		try {
+			const userEpicboardSessionsSnapshot = await userMetaCollection
+				.doc(userId)
+				.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+				.orderBy("startTime")
+				.where("status", "==", 1)
+				.limit(10)
+				.get();
+			const allBookingData = userEpicboardSessionsSnapshot.docs.map(
+				async (epicboardSessionDoc) => {
+					const epicboardSessionData = epicboardSessionDoc.data();
+
+					const sessionSnapshot = await epicboardSessionCollection
+						.doc(epicboardSessionData.id)
+						.get();
+					return {
+						id: epicboardSessionData.id,
+						...sessionSnapshot.data(),
+					};
+				}
+			);
+			const sessions = await Promise.all(allBookingData);
+			SendResponse(res).success("tutor counselors Found", {
+				tutors: sessions,
+				counselors: [],
+			});
+		} catch (err) {
+			console.log("err", err);
+			SendResponse(res).failed("tutor counselors NOT Found");
+		}
+	}
+);

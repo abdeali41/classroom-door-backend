@@ -81,6 +81,9 @@ export const onUpdateEpicboardSessionTrigger =
 // FETCH UPCOMING EPICBOARD SESSIONS LIMITED
 export const getUpcomingEpicboardSessions =
 	EpicBoardSessions.getUpcomingEpicboardSessions;
+// FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
+export const getUserTutoredTutorCounselors =
+	EpicBoardSessions.getUserTutoredTutorCounselors;
 
 /** EPICBOARD ROOM APIS **/
 // No Create API - triggered from Booking Request & Epicboard Session Triggers

@@ -7,6 +7,7 @@ export const firestoreCollectionKeys = {
 	EPICBOARD_SESSIONS: "epicboard-sessions",
 	EPICBOARD_ROOMS: "epicboard-rooms",
 	NOTIFICATIONS: "notifications",
+	REVIEWS: "reviews",
 };
 
 export const realtimeDBNodes = {
