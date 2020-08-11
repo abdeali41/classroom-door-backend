@@ -414,7 +414,7 @@ export const updateBookingRequestStatus = async (
     const { studentId, teacherId, status, creationTime } = bookingRequestData;
     // add  this id to user-event collections user data for both teacher & student
     // node =>  user-data><studentId/teacherId>/booking-request
-    let batchWrite = firestoreDB.batch();
+    const  batchWrite = firestoreDB.batch();
     const bookingRequestObject: bookingRequestUserMetaType = addModifiedTimeStamp<bookingRequestUserMetaType>({
         id: bookingRequestId,
         status,

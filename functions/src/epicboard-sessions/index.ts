@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import * as moment from "moment";
 import {
 	userMetaSubCollectionKeys,
 	firestoreCollectionKeys,
@@ -14,7 +15,6 @@ import {
 	addModifiedTimeStamp,
 	generateUniqueID,
 	addCreationTimeStamp,
-	pushAsSuccessResponse,
 } from "../libs/generics";
 import { EPICBOARD_SESSION_STATUS_CODES } from "../libs/status-codes";
 import { createEpicboardRoom } from "../epicboard-rooms";
@@ -23,6 +23,7 @@ import {
 	userMetaCollection,
 	epicboardSessionCollection,
 } from "../db";
+import SendResponse from "../libs/send-response";
 
 type epicboardSessionObjectType = {
 	status: Number;
@@ -49,7 +50,7 @@ export const createEpicboardSession = async (
 	bookingData: bookingRequestType,
 	bookingId: string
 ) => {
-	let epicboardSessionBatchWrite = firestoreDB.batch();
+	const epicboardSessionBatchWrite = firestoreDB.batch();
 
 	const {
 		teacherId,
@@ -131,6 +132,7 @@ const getAllEpicboardSessionsForUser = async (userId: string) => {
 	const userEpicboardSessionsSnapshot = await userMetaCollection
 		.doc(userId)
 		.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+		.orderBy("creationTime", "desc")
 		.get();
 	const allBookingData = userEpicboardSessionsSnapshot.docs.map(
 		async (epicboardSessionDoc) => {
@@ -152,22 +154,53 @@ const getAllEpicboardSessionsForUser = async (userId: string) => {
 	return Promise.all(allBookingData);
 };
 
+// Fetch limit Booking sessions for arranged in ascending order of their starting time
+export const getUpcomingEpicboardSessions = functions.https.onRequest(
+	async (req: any, res: any) => {
+		const { userId, limit } = req.body;
+
+		try {
+			const userEpicboardSessionsSnapshot = await userMetaCollection
+				.doc(userId)
+				.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+				.orderBy("startTime")
+				.where("status", "==", 1)
+				.limit(limit)
+				.get();
+
+			const allBookingData = userEpicboardSessionsSnapshot.docs.map(
+				async (epicboardSessionDoc) => {
+					const epicboardSessionData = epicboardSessionDoc.data();
+
+					return epicboardSessionCollection
+						.doc(epicboardSessionData.id)
+						.get()
+						.then((data) => ({ id: epicboardSessionData.id, ...data.data() }));
+				}
+			);
+			const sessions = await Promise.all(allBookingData);
+			SendResponse(res).success("Upcoming Epicboard Sessions Found", sessions);
+		} catch (err) {
+			console.log("err", err);
+			SendResponse(res).failed("Upcoming Epicboard Sessions NOT Found");
+		}
+	}
+);
+
 // Get user's Session Events
 export const handleGetUserEpicboardSession = functions.https.onRequest(
 	async (request: any, response: any) => {
 		// fetch all docs from user-meta/<userId>/epicboard-session
 		// Can query on this Collection as per the status
 		const { userId } = request.body;
+
 		getAllEpicboardSessionsForUser(userId)
 			.then((data) => {
-				response
-					.status(200)
-					.json(pushAsSuccessResponse("Epicboard Sessions Found", data));
+				SendResponse(response).success("Epicboard Sessions Found", data);
 			})
 			.catch((err) => {
-				response
-					.status(200)
-					.json(pushAsSuccessResponse("Epicboard Sessions NOT Found", err));
+				console.log("err", err);
+				SendResponse(response).failed("Epicboard Sessions NOT Found");
 			});
 	}
 );
@@ -177,14 +210,21 @@ export const updateEpicboardSessionStatus = async (
 	epicboardSessionData: epicboardSessionObjectType,
 	extraData: Object = {}
 ) => {
-	const { studentId, teacherId, status, creationTime } = epicboardSessionData;
+	const {
+		studentId,
+		teacherId,
+		status,
+		creationTime,
+		startTime,
+	} = epicboardSessionData;
 	// add  this id to user-event collections user data for both teacher & student
 	// node =>  user-data><studentId/teacherId>/session-events
-	let batchWrite = firestoreDB.batch();
+	const batchWrite = firestoreDB.batch();
 	const epicboardSessionObject = addModifiedTimeStamp({
 		id: epicboardSessionId,
 		status,
 		creationTime,
+		startTime: moment.utc(startTime).valueOf(),
 		...extraData,
 	});
 
@@ -235,3 +275,41 @@ export const triggerOnUpdateEpicboardSession = functions.firestore
 		// When Approved the session details need to be added to the collection.
 		// Trigger new Session object from here when approved.
 	});
+
+// Fetch All tutor and counselors user had sessions with.
+export const getUserTutoredTutorCounselors = functions.https.onRequest(
+	async (req: any, res: any) => {
+		const { userId } = req.body;
+
+		try {
+			const userEpicboardSessionsSnapshot = await userMetaCollection
+				.doc(userId)
+				.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+				.orderBy("startTime")
+				.where("status", "==", 1)
+				.limit(10)
+				.get();
+			const allBookingData = userEpicboardSessionsSnapshot.docs.map(
+				async (epicboardSessionDoc) => {
+					const epicboardSessionData = epicboardSessionDoc.data();
+
+					const sessionSnapshot = await epicboardSessionCollection
+						.doc(epicboardSessionData.id)
+						.get();
+					return {
+						id: epicboardSessionData.id,
+						...sessionSnapshot.data(),
+					};
+				}
+			);
+			const sessions = await Promise.all(allBookingData);
+			SendResponse(res).success("tutor counselors Found", {
+				tutors: sessions,
+				counselors: [],
+			});
+		} catch (err) {
+			console.log("err", err);
+			SendResponse(res).failed("tutor counselors NOT Found");
+		}
+	}
+);

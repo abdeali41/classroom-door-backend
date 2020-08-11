@@ -1,20 +1,33 @@
 import * as functions from "firebase-functions";
 import { defaultAvailable } from "../libs/constants";
-import { teacherCollection, userCollection, userMetaCollection } from "../db";
+import {
+	teacherCollection,
+	userCollection,
+	userMetaCollection,
+	reviewsCollection,
+} from "../db";
 
 const getTeacherDataWithFilters = async (filters: any) => {
-	let queryRef: FirebaseFirestore.Query = teacherCollection;
+	const queryRef: FirebaseFirestore.Query = teacherCollection;
 	console.log("FilterData = ", filters);
 	if (!filters) {
 		const teacherPreferencesSnapshot = await teacherCollection.get();
 		const allTeachersData = teacherPreferencesSnapshot.docs.map(
-			(teacherDoc) => {
+			async (teacherDoc) => {
 				const teacherDetails = teacherDoc.data();
 				const userID = teacherDetails.userId;
-				return userCollection
-					.doc(userID)
-					.get()
-					.then((data) => ({ ...teacherDetails, ...data.data() }));
+				const userSnapshot = await userCollection.doc(userID).get();
+
+				const reviewSnapshot = await reviewsCollection
+					.where("addresseeId", "==", userID)
+					.get();
+
+				const reviews = reviewSnapshot.docs.map((r) => ({
+					...r.data(),
+					reviewId: r.id,
+				}));
+
+				return { ...teacherDetails, ...userSnapshot.data(), reviews };
 			}
 		);
 		return Promise.all(allTeachersData);
@@ -77,7 +90,7 @@ const getTeacherDataWithFilters = async (filters: any) => {
 		let hourlyRateFilterResult = true;
 
 		// Filter Teacher Type
-		if (teacherType && teacherType != "All") {
+		if (teacherType && teacherType !== "All") {
 			teacherTypeFilterResult = itemTeacherType === teacherType;
 		}
 
@@ -142,21 +155,6 @@ const getTeacherDataWithFilters = async (filters: any) => {
 			hourlyRateFilterResult =
 				oneToOneSessionRate >= min && oneToOneSessionRate <= max;
 		}
-		console.log(
-			"Final Combine ::",
-			educationFilterResult &&
-				availabilityFilterResult &&
-				hourlyRateFilterResult &&
-				teacherTypeFilterResult &&
-				subjectFilterResult &&
-				genderFilterResult,
-			educationFilterResult,
-			availabilityFilterResult,
-			hourlyRateFilterResult,
-			teacherTypeFilterResult,
-			subjectFilterResult,
-			genderFilterResult
-		);
 		return (
 			educationFilterResult &&
 			availabilityFilterResult &&
@@ -174,13 +172,24 @@ const getTeacherDataWithFilters = async (filters: any) => {
 		console.log("FilterFunction:::", data.length, data);
 		return data;
 	});
-	const newData = allData.map((teacherDoc, index) => {
+	const newData = allData.map(async (teacherDoc, index) => {
 		const teacherDetails = teacherDoc.data();
 		const userID = teacherDetails.userId;
-		return userCollection
-			.doc(userID)
-			.get()
-			.then((data) => ({ ...teacherDetails, ...data.data() }));
+		const userSnapshot = await userCollection.doc(userID).get();
+		const reviewSnapshot = await reviewsCollection
+			.where("addresseeId", "==", userID)
+			.get();
+
+		const reviews = reviewSnapshot.docs.map((r) => ({
+			...r.data(),
+			reviewId: r.id,
+		}));
+
+		return {
+			...teacherDetails,
+			...userSnapshot.data(),
+			reviews,
+		};
 	});
 	return Promise.all(newData);
 };

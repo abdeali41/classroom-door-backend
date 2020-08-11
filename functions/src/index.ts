@@ -78,6 +78,12 @@ export const onCreateEpicboardSessionTrigger =
 // EPICBOARD SESSIONS TRIGGER FOR ON UPDATE BOOKING REQUEST
 export const onUpdateEpicboardSessionTrigger =
 	EpicBoardSessions.triggerOnUpdateEpicboardSession;
+// FETCH UPCOMING EPICBOARD SESSIONS LIMITED
+export const getUpcomingEpicboardSessions =
+	EpicBoardSessions.getUpcomingEpicboardSessions;
+// FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
+export const getUserTutoredTutorCounselors =
+	EpicBoardSessions.getUserTutoredTutorCounselors;
 
 /** EPICBOARD ROOM APIS **/
 // No Create API - triggered from Booking Request & Epicboard Session Triggers
@@ -89,6 +95,15 @@ export const onCreateEpicboardRoomTrigger =
 	EpicBoardRooms.triggerOnCreateEpicboardRoom;
 // EPICBOARD ROOM TRIGGER FOR ON CREATE BOOKING REQUEST
 // export const onUpdateEpicboardRoomTrigger = EpicBoardRooms.triggerOnUpdateEpicboardRoom;	// Not Yet Implemented
+// EPICBOARD ROOM CREATE WHEN JOINING SESSION
+export const joinEpicboardSession = EpicBoardRooms.handleJoinEpicboardSession;
+// EPICBOARD ROOM TRIGGER FOR SAVING USER ACTIVITY WHEN USER JOINS OR EXIT FROM THE ROOM
+export const onUserEpicboardRoomJoinActivity =
+	EpicBoardRooms.onUserEpicboardRoomJoinActivityTrigger;
+
+// EPICBOARD ROOM CRON TO DELETE ROOM AFTER THE SESSION IS COMPLETED
+export const deleteRTDEpicboardRoom =
+	EpicBoardRooms.handleRTDEpicboardRoomDeletion;
 
 /** MESSAGING APIS **/
 
