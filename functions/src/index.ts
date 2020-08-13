@@ -8,7 +8,6 @@ initializeApp({
 import * as Teachers from "./teachers";
 import * as Users from "./users";
 import * as Students from "./students";
-import * as Messages from "./messages";
 import * as UpdateUser from "./update-user-data";
 import * as Booking from "./booking-request";
 import * as EpicBoardSessions from "./epicboard-sessions";
@@ -105,12 +104,8 @@ export const onUserEpicboardRoomJoinActivity =
 export const deleteRTDEpicboardRoom =
 	EpicBoardRooms.handleRTDEpicboardRoomDeletion;
 
-/** MESSAGING APIS **/
-
-// TO CREATE CHAT GROUP BETWEEN USERS
-export const createGroupChat = Messages.createGroupChat;
-// TO GET ALL RECENT CHATS OF USERS
-export const getMessagingList = Messages.getMessagingList;
+/** MESSAGING **/
+export * from "./messages";
 
 /** NOTIFICATION APIS **/
 
