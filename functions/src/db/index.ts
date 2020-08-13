@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { firestoreCollectionKeys, realtimeDBNodes } from "../libs/constants";
+import { firestoreCollectionKeys, realtimeDBNodes } from "./enum";
 
 export const firestoreDB = admin.firestore();
 export const realtimeDB = admin.database();
