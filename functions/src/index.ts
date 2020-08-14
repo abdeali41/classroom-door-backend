@@ -10,7 +10,6 @@ import * as Users from "./users";
 import * as Students from "./students";
 import * as UpdateUser from "./update-user-data";
 import * as Booking from "./booking-request";
-import * as EpicBoardSessions from "./epicboard-sessions";
 import * as EpicBoardRooms from "./epicboard-rooms";
 import * as Notification from "./notifications";
 
@@ -64,25 +63,8 @@ export const onCreateBookingRequestTrigger =
 export const onUpdateBookingRequestTrigger =
 	Booking.triggerOnUpdateBookingRequest;
 
-/** EPICBOARD SESSIONS APIS **/
-
-// No Create API - triggered from Booking Request Triggers
-
-// FETCH EPICBOARD SESSIONS
-export const getEpicboardSessions =
-	EpicBoardSessions.handleGetUserEpicboardSession;
-// EPICBOARD SESSIONS TRIGGER FOR ON CREATE BOOKING REQUEST
-export const onCreateEpicboardSessionTrigger =
-	EpicBoardSessions.triggerOnCreateEpicboardSession;
-// EPICBOARD SESSIONS TRIGGER FOR ON UPDATE BOOKING REQUEST
-export const onUpdateEpicboardSessionTrigger =
-	EpicBoardSessions.triggerOnUpdateEpicboardSession;
-// FETCH UPCOMING EPICBOARD SESSIONS LIMITED
-export const getUpcomingEpicboardSessions =
-	EpicBoardSessions.getUpcomingEpicboardSessions;
-// FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
-export const getUserTutoredTutorCounselors =
-	EpicBoardSessions.getUserTutoredTutorCounselors;
+/** EPICBOARD SESSIONS **/
+export * from "./epicboard-sessions";
 
 /** EPICBOARD ROOM APIS **/
 // No Create API - triggered from Booking Request & Epicboard Session Triggers

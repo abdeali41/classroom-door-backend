@@ -13,7 +13,7 @@ import {
 	SESSION_TYPES,
 } from "../libs/constants";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { createEpicboardSession } from '../epicboard-sessions';
+import { createEpicboardSession } from "../epicboard-sessions/methods";
 
 // type createBookingRequestDataType = {
 //     teacherId: string,
