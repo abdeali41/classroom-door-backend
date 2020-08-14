@@ -6,7 +6,7 @@
 		"deploy-teacher-apis": "firebase deploy --only functions:getTeachersAPI,functions:getTeachers,functions:getTeacher -P ${DEPLOY:-default}",
 		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavourite,functions:toggleMarkAsFavorite -P ${DEPLOY:-default}",
 		"deploy-booking-request-apis": "firebase deploy --only functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger -P ${DEPLOY:-default}",
-		"deploy-epicboard-session-apis": "firebase deploy --only functions:sessions,functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger,functions:getUpcomingEpicboardSessions,functions:getUserTutoredTutorCounselors -P ${DEPLOY:-default}",
+		"deploy-epicboard-session-apis": "firebase deploy --only functions:sessions,functions:getEpicboardSessions,functions:onCreateEpicboardSessionTrigger,functions:onUpdateEpicboardSessionTrigger,functions:getUpcomingEpicboardSessions,functions:getUserTutoredTutorCounselors,functions:onCreateEpicboardRoomTrigger,functions:joinEpicboardSession,functions:onUserEpicboardRoomJoinActivity -P ${DEPLOY:-default}",
 		"deploy-epicboard-room-apis": "firebase deploy --only functions:onCreateEpicboardRoomTrigger,functions:joinEpicboardSession,functions:onUserEpicboardRoomJoinActivity -P ${DEPLOY:-default}",
 		"deploy-messages-apis": "firebase deploy --only functions:messages,functions:createGroupChat,functions:getMessagingList -P ${DEPLOY:-default}",
 		"deploy-notification-apis": "firebase deploy --only functions:newMessageNotification -P ${DEPLOY:-default}",

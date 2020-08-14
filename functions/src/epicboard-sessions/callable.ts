@@ -1,10 +1,12 @@
 import * as functions from "firebase-functions";
 import * as methods from "./methods";
+import { successTypes } from "../libs/send-response";
 
 enum actionTypes {
 	GET_ALL_SESSIONS = "GET_ALL_SESSIONS",
 	GET_UPCOMING_SESSIONS = "GET_UPCOMING_SESSIONS",
 	GET_USER_TUTOR_COUNSELOR = "GET_USER_TUTOR_COUNSELOR",
+	JOIN_EPICBOARD_SESSION = "JOIN_EPICBOARD_SESSION",
 }
 
 /** SESSIONS CALLABLE  **/
@@ -44,6 +46,19 @@ export const sessions = functions.https.onCall(async (data, context) => {
 			result = await methods.getUserTutorCounselors({
 				userId,
 			});
+			break;
+		case actionTypes.JOIN_EPICBOARD_SESSION: // FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
+			const { sessionId } = data;
+			const value = await methods.joinEpicboardSession({
+				sessionId,
+			});
+
+			result = {
+				...value,
+				successType: value.roomId
+					? successTypes.SHOW_DATA
+					: successTypes.SHOW_MESSAGE,
+			};
 			break;
 		default:
 			result = null;

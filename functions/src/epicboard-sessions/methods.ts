@@ -1,3 +1,4 @@
+import { database } from "firebase-admin";
 import * as moment from "moment";
 import {
 	bookingRequestType,
@@ -10,17 +11,55 @@ import {
 	generateUniqueID,
 	addCreationTimeStamp,
 } from "../libs/generics";
-import { EPICBOARD_SESSION_STATUS_CODES } from "../libs/status-codes";
-import { createEpicboardRoom } from "../epicboard-rooms";
+import {
+	EPICBOARD_SESSION_STATUS_CODES,
+	EPICBOARD_ROOM_STATUS_CODES,
+} from "../libs/status-codes";
 import {
 	firestoreDB,
 	userMetaCollection,
 	epicboardSessionCollection,
+	epicboardRoomCollection,
+	getRoomCurrentSessionRef,
+	getRoomMetaRef,
+	getRoomUserRef,
+	getRoomRef,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
+import { isBetweenInterval } from "../libs/date-utils";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
+
+// Triggered from Crete Session-events
+export const createEpicboardRoom = async (
+	roomId: string,
+	sessionEventIdList: string[],
+	studentIdList: string[],
+	teacherId: string
+) => {
+	const newRoomCollectionObject: epicboardRoomObjectType = addCreationTimeStamp<
+		epicboardRoomObjectType
+	>({
+		status: EPICBOARD_ROOM_STATUS_CODES.CREATED,
+		id: roomId,
+		sessionEventIdList,
+		memberIdList: [...studentIdList, teacherId],
+		presenterId: teacherId,
+		activity: {},
+		savedStates: {},
+	});
+	console.log("Epicboard Room Object ::", newRoomCollectionObject);
+	await epicboardRoomCollection
+		.doc(roomId)
+		.set(newRoomCollectionObject)
+		.then((data) => {
+			console.log("Done Creating New Room::", data);
+		})
+		.catch((err) => {
+			console.log("ERROR:::::Creating New Room::", err);
+		});
+};
 
 export const createEpicboardSession = async (
 	bookingData: bookingRequestType,
@@ -228,4 +267,115 @@ export const getUserTutorCounselors = async (
 		tutors: sessions,
 		counselors: [],
 	};
+};
+
+/////////////////////////////////////////////////////////////////
+
+const createRoom = async (roomId: string, roomInfo: RoomInfo) => {
+	const roomMeta = {
+		...roomInfo,
+		id: roomId,
+		createdAt: database.ServerValue.TIMESTAMP,
+	};
+	await getRoomMetaRef(roomId).update(roomMeta);
+	return true;
+};
+
+const addUsersToRoom = async (roomId: string, users) => {
+	const addUsersToRoomPromise = users.map(async (user) => {
+		await getRoomUserRef(roomId, user).update({ id: user });
+	});
+
+	return Promise.all(addUsersToRoomPromise);
+};
+
+const isRoomExits = (roomId: string) => {
+	const roomRef = getRoomRef(roomId);
+	return roomRef.once("value").then((snap) => snap.exists());
+};
+
+export const updateEpicboardRoomStatus = async (
+	epicboardRoomId: string,
+	epicboardRoomData: epicboardRoomObjectType,
+	extraData: Object = {}
+): Promise<boolean> => {
+	const { memberIdList, status, creationTime } = epicboardRoomData;
+	// add  this id to user-event collections user data for both teacher & student
+	// node =>  user-data><studentId/teacherId>/session-events
+	const batchWrite = firestoreDB.batch();
+	const sessionEventObject = addModifiedTimeStamp({
+		id: epicboardRoomId,
+		status,
+		creationTime,
+		...extraData,
+	});
+
+	// Updating for all members
+	memberIdList.map((memberId) => {
+		batchWrite.set(
+			userMetaCollection
+				.doc(memberId)
+				.collection(userMetaSubCollectionKeys.EPICBOARD_ROOM)
+				.doc(epicboardRoomId),
+			sessionEventObject,
+			{ merge: true }
+		);
+	});
+	await batchWrite.commit();
+	return true;
+};
+
+// Create room for joining epicboard session
+export const joinEpicboardSession = async (
+	params: JoinEpicboardSessionRequestType
+): Promise<joinEpicboardSessionReturnType> => {
+	const { sessionId } = params;
+	const epicboardSessionSnapshot = await epicboardSessionCollection
+		.doc(sessionId)
+		.get();
+
+	const epicboardSession = epicboardSessionSnapshot.data();
+
+	const {
+		roomId,
+		teacherId,
+		startTime,
+		sessionLength,
+		subjects,
+	}: any = epicboardSession;
+
+	const endTime = moment(startTime).add(sessionLength, "minutes");
+
+	if (!isBetweenInterval(startTime, endTime)) {
+		return {
+			message:
+				"This session is not started yet or completed! Please join on scheduled time.",
+		};
+	}
+
+	const epicboardRoomSnapshot = await epicboardRoomCollection.doc(roomId).get();
+
+	const epicboardRoom = epicboardRoomSnapshot.data();
+
+	const { memberIdList }: any = epicboardRoom;
+
+	const isAlreadyCreated = await isRoomExits(roomId);
+
+	if (!isAlreadyCreated) {
+		const roomName = subjects.join(",");
+
+		const roomInfo = {
+			name: roomName,
+			presenterIds: [teacherId],
+			ownerId: teacherId,
+			activeBoard: 0,
+			currentSessionId: sessionId,
+		};
+		await createRoom(roomId, roomInfo);
+		await addUsersToRoom(roomId, memberIdList);
+	} else {
+		await getRoomCurrentSessionRef(roomId).set(sessionId);
+	}
+
+	return { roomId, message: "Epicboard Session created" };
 };

@@ -1,9 +1,6 @@
 import * as functions from "firebase-functions";
-import {
-	getAllSessions,
-	getUpcomingSessions,
-	getUserTutorCounselors,
-} from "./methods";
+import * as methods from "./methods";
+
 import SendResponse from "../libs/send-response";
 
 /** EPICBOARD SESSIONS APIS **/
@@ -13,7 +10,8 @@ export const getEpicboardSessions = functions.https.onRequest(
 	async (req, res) => {
 		const { userId } = req.body;
 
-		getAllSessions({ userId })
+		methods
+			.getAllSessions({ userId })
 			.then(({ sessions }) => {
 				SendResponse(res).success("Epicboard Sessions Found", sessions);
 			})
@@ -28,7 +26,8 @@ export const getEpicboardSessions = functions.https.onRequest(
 export const getUpcomingEpicboardSessions = functions.https.onRequest(
 	async (req, res) => {
 		const { userId, limit } = req.body;
-		getUpcomingSessions({ userId, limit })
+		methods
+			.getUpcomingSessions({ userId, limit })
 			.then(({ sessions }) =>
 				SendResponse(res).success("Upcoming Epicboard Sessions Found", sessions)
 			)
@@ -43,7 +42,8 @@ export const getUpcomingEpicboardSessions = functions.https.onRequest(
 export const getUserTutoredTutorCounselors = functions.https.onRequest(
 	async (req, res) => {
 		const { userId } = req.body;
-		getUserTutorCounselors({ userId })
+		methods
+			.getUserTutorCounselors({ userId })
 			.then(({ tutors, counselors }) =>
 				SendResponse(res).success("tutor counselors Found", {
 					tutors,
@@ -53,6 +53,26 @@ export const getUserTutoredTutorCounselors = functions.https.onRequest(
 			.catch((err) => {
 				console.log("err", err);
 				SendResponse(res).failed("tutor counselors NOT Found");
+			});
+	}
+);
+
+// EPICBOARD ROOM CREATE WHEN JOINING SESSION
+export const joinEpicboardSession = functions.https.onRequest(
+	async (req, res) => {
+		const { sessionId } = req.body;
+		methods
+			.joinEpicboardSession({ sessionId })
+			.then(({ roomId, message }) => {
+				if (roomId) {
+					SendResponse(res).success(message, { roomId });
+				} else {
+					SendResponse(res).failed(message);
+				}
+			})
+			.catch((err) => {
+				console.log("err", err);
+				SendResponse(res).failed(err);
 			});
 	}
 );

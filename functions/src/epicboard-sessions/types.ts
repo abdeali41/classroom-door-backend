@@ -36,3 +36,52 @@ type getUserTutorCounselorsReturnType = {
 	tutors: object[];
 	counselors: object[];
 };
+
+type epicboardRoomActivityType = {
+	[key: string]: {
+		// key = sessionEventId
+		startTImeStamp: string;
+		endTimeStamp: string;
+		members: {
+			// Object Array
+			[key: string]: {
+				// key = memberID (student/teacher)
+				startTImeStamp: string;
+				endTimeStamp: string;
+			}[];
+		};
+	};
+};
+
+type epicboardRoomSavedStatesType = {
+	[key: string]: {
+		// timestamp keys
+	};
+};
+
+type epicboardRoomObjectType = {
+	status: Number;
+	id: string;
+	sessionEventIdList: string[];
+	memberIdList: string[];
+	presenterId: string;
+	activity: epicboardRoomActivityType;
+	savedStates: epicboardRoomSavedStatesType;
+} & createdAndModifiedTimeStampTypes;
+
+type JoinEpicboardSessionRequestType = {
+	// userId?: string;
+	sessionId: string;
+};
+
+type RoomInfo = {
+	name: string;
+	presenterIds: string[];
+	ownerId: string;
+	activeBoard: number;
+};
+
+type joinEpicboardSessionReturnType = {
+	roomId?: string;
+	message: string;
+};
