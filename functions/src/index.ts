@@ -62,8 +62,8 @@ export const onCreateBookingRequestTrigger =
 export const onUpdateBookingRequestTrigger =
 	Booking.triggerOnUpdateBookingRequest;
 
-/** EPICBOARD SESSIONS AND EPICBOARD ROOM  **/
-export * from "./epicboard-sessions";
+/** SESSIONS **/
+export * from "./sessions";
 
 /** MESSAGING **/
 export * from "./messages";
