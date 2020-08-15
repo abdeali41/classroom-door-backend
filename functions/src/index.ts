@@ -9,7 +9,6 @@ import * as Teachers from "./teachers";
 import * as Users from "./users";
 import * as Students from "./students";
 import * as UpdateUser from "./update-user-data";
-import * as Notification from "./notifications";
 
 /** USER APIS **/
 
@@ -53,7 +52,5 @@ export * from "./sessions";
 /** MESSAGING **/
 export * from "./messages";
 
-/** NOTIFICATION APIS **/
-
-// FOR SENDING PUSH NOTIFICATIONS WHEN USER SENDS MESSAGE
-export const newMessageNotification = Notification.sendNewMessageNotification;
+/** NOTIFICATION  **/
+export * from "./notifications";
