@@ -13,6 +13,7 @@ export enum firestoreCollectionKeys {
 	EPICBOARD_ROOMS = "epicboard-rooms",
 	NOTIFICATIONS = "notifications",
 	REVIEWS = "reviews",
+	SUBJECT_LISTS = "subjectLists",
 }
 
 export enum realtimeDBNodes {

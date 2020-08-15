@@ -33,6 +33,9 @@ export const notificationCollection = firestoreDB.collection(
 export const reviewsCollection = firestoreDB.collection(
 	firestoreCollectionKeys.REVIEWS
 );
+export const subjectListCollection = firestoreDB.collection(
+	firestoreCollectionKeys.SUBJECT_LISTS
+);
 
 // REALTIME DATABASE REFS
 
