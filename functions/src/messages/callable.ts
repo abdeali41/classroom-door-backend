@@ -2,11 +2,12 @@ import * as functions from "firebase-functions";
 import { getUserMessages, createChat } from "./methods";
 
 enum actionTypes {
-	GET_USER_MESSAGES = "GET_USER_MESSAGES",
-	CREATE_CHAT = "CREATE_CHAT",
+	GET_USER_MESSAGES = "GET_USER_MESSAGES", // TO CREATE CHAT GROUP BETWEEN USERS
+	CREATE_CHAT = "CREATE_CHAT", // TO GET ALL RECENT CHATS OF USERS
 }
 
 /** MESSAGING CALLABLE  **/
+
 export const messages = functions.https.onCall(async (data, context) => {
 	const { actionType } = data;
 

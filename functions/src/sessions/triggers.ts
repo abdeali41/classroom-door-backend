@@ -10,7 +10,7 @@ import {
 } from "../db/enum";
 import { getRoomCurrentSessionRef, epicboardRoomCollection } from "../db";
 
-/** EPICBOARD SESSIONS TRIGGERS **/
+/** SESSIONS TRIGGERS **/
 
 // EPICBOARD SESSIONS TRIGGER FOR ON CREATE BOOKING REQUEST
 export const onCreateEpicboardSessionTrigger = functions.firestore

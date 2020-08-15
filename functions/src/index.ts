@@ -9,7 +9,6 @@ import * as Teachers from "./teachers";
 import * as Users from "./users";
 import * as Students from "./students";
 import * as UpdateUser from "./update-user-data";
-import * as Booking from "./booking-request";
 import * as Notification from "./notifications";
 
 /** USER APIS **/
@@ -45,22 +44,8 @@ export const getTeachers = Teachers.getTeacherData;
 // FETCH DATA FOR SINGLE TEACHER
 export const getTeacher = Teachers.getTeacher;
 
-/** BOOKING APIS **/
-
-// CREATE BOOKING REQUEST
-export const createBookingRequest = Booking.handleCreateBookingRequest;
-// FETCH BOOKING REQUEST
-export const getBookingRequests = Booking.handleGetUserBookingRequest;
-// FETCH BOOKING REQUEST BY ID
-export const getBookingRequestById = Booking.handleGetBookingById;
-// UPDATE BOOKING REQUEST
-export const updateBookingRequest = Booking.handleUpdateBookingRequest;
-// BOOKING REQUEST TRIGGER FOR ON CREATE BOOKING REQUEST
-export const onCreateBookingRequestTrigger =
-	Booking.triggerOnCreateBookingRequest;
-// BOOKING REQUEST TRIGGER FOR ON UPDATE BOOKING REQUEST
-export const onUpdateBookingRequestTrigger =
-	Booking.triggerOnUpdateBookingRequest;
+/** BOOKING  **/
+export * from "./booking-request";
 
 /** SESSIONS **/
 export * from "./sessions";

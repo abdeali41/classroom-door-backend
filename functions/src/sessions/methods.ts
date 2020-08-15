@@ -1,12 +1,6 @@
 import { database } from "firebase-admin";
 import * as moment from "moment";
 import {
-	bookingRequestType,
-	requestThreadSlotMapType,
-	getLastRequestObject,
-	updateBookingRequestStatus,
-} from "../booking-request";
-import {
 	addModifiedTimeStamp,
 	generateUniqueID,
 	addCreationTimeStamp,
@@ -27,6 +21,10 @@ import {
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { isBetweenInterval } from "../libs/date-utils";
+import {
+	getLastRequestObject,
+	updateBookingRequestStatus,
+} from "../booking-request/methods";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
