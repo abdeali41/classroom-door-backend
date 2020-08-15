@@ -45,7 +45,7 @@ export const getTeachers = Teachers.getTeacherData;
 export const getTeacher = Teachers.getTeacher;
 
 /** BOOKING  **/
-export * from "./booking-request";
+export * from "./booking";
 
 /** SESSIONS **/
 export * from "./sessions";

@@ -24,7 +24,7 @@ import { isBetweenInterval } from "../libs/date-utils";
 import {
 	getLastRequestObject,
 	updateBookingRequestStatus,
-} from "../booking-request/methods";
+} from "../booking/methods";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
