@@ -6,7 +6,6 @@ initializeApp({
 	databaseURL: "https://classroom-door.firebaseio.com",
 });
 import * as Users from "./users";
-import * as Students from "./students";
 import * as UpdateUser from "./update-user-data";
 
 /** USER APIS **/
@@ -25,19 +24,13 @@ export const updateUserData = UpdateUser.updateUserProfileDetails;
 export const fixStudentPreferences = UpdateUser.updateStudentPreferences;
 export const deleteAllRooms = UpdateUser.removeAllRoomFromFirestore;
 
-/** STUDENT APIS **/
-
-// Get Students
-export const students = Students.getAllStudents; //To be deleted
-export const getStudents = Students.getAllStudents;
-// FOR CHANGING MARK AS FAVORITE STATUS
-export const toggleMarkAsFavourite = Students.toggleMarkAsFavorite; // To be deleted
-export const toggleMarkAsFavorite = Students.toggleMarkAsFavorite;
+/** STUDENTS **/
+export * from "./students";
 
 /** TEACHERS **/
 export * from "./teachers";
 
-/** BOOKING  **/
+/** BOOKING **/
 export * from "./booking";
 
 /** SESSIONS **/
@@ -46,5 +39,5 @@ export * from "./sessions";
 /** MESSAGING **/
 export * from "./messages";
 
-/** NOTIFICATION  **/
+/** NOTIFICATION **/
 export * from "./notifications";
