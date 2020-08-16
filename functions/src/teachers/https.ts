@@ -31,3 +31,17 @@ export const getTeacher = functions.https.onRequest(
 			});
 	}
 );
+
+// FIX TEACHER PREFERENCES
+export const fixTeacherPreferences = functions.https.onRequest(
+	async (req: any, res: any) => {
+		methods
+			.updateTeacherPreference()
+			.then((teacher) => {
+				SendResponse(res).success("Query Success", teacher);
+			})
+			.catch((err) => {
+				SendResponse(res).failed(err);
+			});
+	}
+);

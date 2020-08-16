@@ -5,24 +5,9 @@ initializeApp({
 	credential: credential.cert(serviceAccount),
 	databaseURL: "https://classroom-door.firebaseio.com",
 });
-import * as Users from "./users";
-import * as UpdateUser from "./update-user-data";
 
-/** USER APIS **/
-
-// GET USERS
-export const users = Users.getUsers;
-// TO GET ALL USERS THAT BELONGS TO A PARTICULAR ROOM AND ALSO RETURN REMAINING USERS
-export const roomMembers = Users.getRoomMembers;
-// GET USER IMAGE
-export const userImage = Users.getUserImage;
-
-/** UPDATE USER APIS **/
-
-export const fixTeacherPreferences = UpdateUser.updateTeacherPreference;
-export const updateUserData = UpdateUser.updateUserProfileDetails;
-export const fixStudentPreferences = UpdateUser.updateStudentPreferences;
-export const deleteAllRooms = UpdateUser.removeAllRoomFromFirestore;
+/** USER **/
+export * from "./users";
 
 /** STUDENTS **/
 export * from "./students";

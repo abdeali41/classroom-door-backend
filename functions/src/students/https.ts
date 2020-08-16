@@ -38,3 +38,17 @@ export const toggleMarkAsFavorite = functions.https.onRequest(
 			});
 	}
 );
+
+// FIX STUDENT PREFERENCES
+export const fixStudentPreferences = functions.https.onRequest(
+	async (req: any, res: any) => {
+		methods
+			.updateStudentPreferences()
+			.then((student) => {
+				SendResponse(res).success("Updated Student List Success", student);
+			})
+			.catch((err) => {
+				SendResponse(res).failed(err);
+			});
+	}
+);

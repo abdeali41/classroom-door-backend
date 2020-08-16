@@ -1,4 +1,4 @@
-import { studentCollection, userCollection } from "../db";
+import { studentCollection, userCollection, firestoreDB } from "../db";
 
 export const getAllStudents = async (): Promise<any> => {
 	const usersQuery = await userCollection
@@ -58,4 +58,29 @@ export const toggleMarkAsFavorite = async (
 	});
 
 	return { favorites: userMeta.favorites || [] };
+};
+
+export const updateStudentPreferences = async () => {
+	const batch = firestoreDB.batch();
+	const querySnapshot = await studentCollection.get();
+	querySnapshot.forEach((doc) => {
+		const data = doc.data();
+
+		const newData = {
+			...data,
+			userMeta: {
+				favorites: [], // id array of userIds
+				ratings: {
+					average: 0, // initially zero
+					reviews: [], // id array of Reviews from other collections.
+				},
+				sessionsCompleted: 0,
+			},
+		};
+
+		batch.set(studentCollection.doc(doc.id), newData);
+	});
+	const result = batch.commit();
+
+	return result;
 };
