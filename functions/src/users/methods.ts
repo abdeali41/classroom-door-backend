@@ -48,16 +48,16 @@ export const updateUserProfileDetails = async (): Promise<any> => {
 	const querySnapshot = await userCollection.get();
 	querySnapshot.forEach((doc) => {
 		const data = doc.data();
-		const newGenderValue: string = data.gender
-			? data.gender.toUpperCase()
-			: "FEMALE";
-		console.log(
-			`User Gender ::: ${data.id} -- ${
-				data.gender
-			}, ${data.gender.toUpperCase()}, ${newGenderValue}`
-		);
+		console.log("userId-updateUserProfileDetails", doc.id);
+		let { gender = "MALE" } = data;
 
-		batch.set(firestoreDB.collection("usersCopy").doc(doc.id), {
+		if (typeof gender !== "string") {
+			gender = "MALE";
+		}
+		const newGenderValue: string = gender ? gender.toUpperCase() : "MALE";
+		console.log(`User Gender ::: ${doc.id} -- ${gender}, ${newGenderValue}`);
+
+		batch.update(firestoreDB.collection("users").doc(doc.id), {
 			...data,
 			gender: newGenderValue,
 		});
@@ -86,4 +86,22 @@ export const removeAllRoomFromFirestore = async (): Promise<any> => {
 		});
 	});
 	return true;
+};
+
+export const migrateUserMeta = async () => {
+	await updateUserProfileDetails();
+	const batch = firestoreDB.batch();
+	const querySnapshot = await firestoreDB.collection("userMeta").get();
+	querySnapshot.forEach((doc) => {
+		const data = doc.data();
+		const userId = doc.id;
+
+		batch.set(firestoreDB.collection("user-meta").doc(userId), {
+			...data,
+		});
+
+		// delete attribute from user delete attributes from teacher or student
+	});
+	const result = batch.commit();
+	return result;
 };
