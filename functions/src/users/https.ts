@@ -78,3 +78,18 @@ export const deleteAllRooms = functions.https.onRequest(
 			});
 	}
 );
+
+// MIGRATE userMeta to user-meta COLLECTION // CAUTION: DEV ONLY
+export const migrateUserMeta = functions.https.onRequest(
+	async (req: any, res: any) => {
+		methods
+			.updateUserProfileDetails()
+			.then((result) => {
+				SendResponse(res).success("Query Success", result);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				SendResponse(res).failed(err);
+			});
+	}
+);
