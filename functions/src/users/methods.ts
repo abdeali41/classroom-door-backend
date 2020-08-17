@@ -39,9 +39,8 @@ export const getUserImage = async (userId: string): Promise<string> => {
 	const userSnapshot = await userCollection.doc(userId).get();
 	const user: any = userSnapshot.data();
 	const { profilePic = {} } = user;
-	const { downloadUrl = "" } = profilePic;
-
-	return downloadUrl;
+	const { downloadURL = "" } = profilePic;
+	return downloadURL;
 };
 
 export const updateUserProfileDetails = async (): Promise<any> => {
