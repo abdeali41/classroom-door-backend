@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as methods from "./methods";
+import { validateAuthAndActionType } from "../libs/validation";
 
 enum actionTypes {
 	GET_ALL_USERS = "GET_ALL_USERS", // GET ALL USERS
@@ -9,25 +10,10 @@ enum actionTypes {
 
 /** USERS CALLABLE  **/
 
-export const users = functions.https.onCall(async (data, context) => {
+export const users = functions.https.onCall(async (data: any, context: any) => {
+	validateAuthAndActionType(data, context);
+
 	const { actionType } = data;
-
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			"permission-denied",
-			"You must be authenticated!"
-		);
-	}
-
-	if (!actionType) {
-		// Throwing an HttpsError if actionType is not present in call
-		throw new functions.https.HttpsError(
-			"invalid-argument",
-			"actionType not found"
-		);
-	}
 
 	let result: any;
 

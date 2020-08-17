@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import * as methods from "./methods";
 import { successTypes } from "../libs/send-response";
+import { validateAuthAndActionType } from "../libs/validation";
 
 enum actionTypes {
 	GET_ALL_SESSIONS = "GET_ALL_SESSIONS", // FETCH EPICBOARD SESSIONS
@@ -10,60 +11,47 @@ enum actionTypes {
 }
 
 /** SESSIONS CALLABLE  **/
-export const sessions = functions.https.onCall(async (data, context) => {
-	const { actionType } = data;
+export const sessions = functions.https.onCall(
+	async (data: any, context: any) => {
+		validateAuthAndActionType(data, context);
 
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			"permission-denied",
-			"You must be authenticated!"
-		);
+		const { actionType } = data;
+
+		const userId = context.auth.uid;
+
+		let result: any;
+
+		switch (actionType) {
+			case actionTypes.GET_ALL_SESSIONS:
+				result = await methods.getAllSessions({ userId });
+				break;
+			case actionTypes.GET_UPCOMING_SESSIONS:
+				const { limit } = data;
+				result = await methods.getUpcomingSessions({ userId, limit });
+				break;
+			case actionTypes.GET_USER_TUTOR_COUNSELOR:
+				result = await methods.getUserTutorCounselors({
+					userId,
+				});
+				break;
+			case actionTypes.JOIN_EPICBOARD_SESSION:
+				const { sessionId } = data;
+				const value = await methods.joinEpicboardSession({
+					sessionId,
+				});
+
+				result = {
+					...value,
+					successType: value.roomId
+						? successTypes.SHOW_DATA
+						: successTypes.SHOW_MESSAGE,
+				};
+				break;
+			default:
+				result = null;
+				break;
+		}
+
+		return result;
 	}
-
-	if (!actionType) {
-		// Throwing an HttpsError if actionType is not present in call
-		throw new functions.https.HttpsError(
-			"invalid-argument",
-			"actionType not found"
-		);
-	}
-
-	const userId = context.auth.uid;
-
-	let result: any;
-
-	switch (actionType) {
-		case actionTypes.GET_ALL_SESSIONS:
-			result = await methods.getAllSessions({ userId });
-			break;
-		case actionTypes.GET_UPCOMING_SESSIONS:
-			const { limit } = data;
-			result = await methods.getUpcomingSessions({ userId, limit });
-			break;
-		case actionTypes.GET_USER_TUTOR_COUNSELOR:
-			result = await methods.getUserTutorCounselors({
-				userId,
-			});
-			break;
-		case actionTypes.JOIN_EPICBOARD_SESSION:
-			const { sessionId } = data;
-			const value = await methods.joinEpicboardSession({
-				sessionId,
-			});
-
-			result = {
-				...value,
-				successType: value.roomId
-					? successTypes.SHOW_DATA
-					: successTypes.SHOW_MESSAGE,
-			};
-			break;
-		default:
-			result = null;
-			break;
-	}
-
-	return result;
-});
+);
