@@ -2,7 +2,7 @@
 import { Response } from "express";
 import HttpStatus from "./http-status";
 
-const successTypes = {
+export const successTypes = {
 	SHOW_MESSAGE: "SHOW_MESSAGE",
 	SHOW_DATA: "SHOW_DATA",
 };
