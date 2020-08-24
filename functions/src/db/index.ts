@@ -61,3 +61,5 @@ export const getChatMetaRef = (chatType: string, chatId: string) =>
 	getChatRef(chatType, chatId).child("meta");
 export const getChatConversationRef = (chatType: string, chatId: string) =>
 	getChatRef(chatType, chatId).child("conversation");
+export const getChatMetaUpdatedAtRef = (chatType: string, chatId: string) =>
+	getChatMetaRef(chatType, chatId).child("updatedAt");

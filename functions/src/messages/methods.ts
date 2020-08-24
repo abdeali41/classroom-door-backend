@@ -19,9 +19,10 @@ export const createChat = async (
 
 	const isGroup = memberIds.length > 1;
 
-	const chatMeta = {
+	const chatMeta: chatMetaType = {
 		id: chatId,
 		createdAt: database.ServerValue.TIMESTAMP,
+		updatedAt: database.ServerValue.TIMESTAMP,
 		isGroup,
 		members: [...memberIds, userId],
 		groupName: groupName || "",
@@ -38,7 +39,35 @@ export const createChat = async (
 		});
 	});
 
-	return { chatId };
+	const membersQuery = await userCollection
+		.where("userId", "in", memberIds)
+		.get();
+
+	const members = membersQuery.docs.map((doc) => {
+		const {
+			firstName,
+			lastName,
+			userId: mId,
+			profilePic,
+			userType,
+		} = doc.data();
+
+		return {
+			firstName,
+			lastName,
+			userId: mId,
+			profilePic,
+			userType,
+		};
+	});
+
+	return {
+		chatId,
+		...chatMeta,
+		lastMessage: {},
+		members,
+		memberIds,
+	};
 };
 
 export const getUserMessages = async (
@@ -82,7 +111,14 @@ export const getUserMessages = async (
 		const members: Array<any> = [];
 
 		(await membersQuery).docs.forEach((doc) => {
-			members.push(doc.data());
+			const {
+				firstName,
+				lastName,
+				userId: mId,
+				profilePic,
+				userType,
+			} = doc.data();
+			members.push({ firstName, lastName, userId: mId, profilePic, userType });
 		});
 
 		return {
@@ -95,22 +131,26 @@ export const getUserMessages = async (
 
 	const allMessages: object[] = await Promise.all(messagesArr);
 
-	const messages = allMessages.filter((msg: any) => {
-		const deletedBy = msg.deletedBy || {};
-		const archivedBy = msg.archivedBy || {};
-		if (deletedBy[userId] || archivedBy[userId]) {
-			return false;
-		}
-		return true;
-	});
-
-	const archived = allMessages.filter((msg: any) => {
-		const archivedBy = msg.archivedBy || {};
-		if (archivedBy[userId]) {
+	const messages = allMessages
+		.filter((msg: any) => {
+			const deletedBy = msg.deletedBy || {};
+			const archivedBy = msg.archivedBy || {};
+			if (deletedBy[userId] || archivedBy[userId]) {
+				return false;
+			}
 			return true;
-		}
-		return false;
-	});
+		})
+		.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
+
+	const archived = allMessages
+		.filter((msg: any) => {
+			const archivedBy = msg.archivedBy || {};
+			if (archivedBy[userId]) {
+				return true;
+			}
+			return false;
+		})
+		.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
 
 	return {
 		messages,
