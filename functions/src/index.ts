@@ -6,6 +6,9 @@ initializeApp({
 	databaseURL: "https://classroom-door.firebaseio.com",
 });
 
+/** DATA FIXES **/
+export * from "./data-fixes";
+
 /** USER **/
 export * from "./users";
 
