@@ -12,68 +12,66 @@ import {
 // import { chatTypes } from "../libs/constants";
 // import * as admin from "firebase-admin";
 
-const defaultProfilePic = {
-	storagePath: "/users/NGprqEvRScgzN7AVblfsNUmDAcu1/public/profileImage",
-	downloadURL:
-		"https://firebasestorage.googleapis.com/v0/b/classroom-door.appspot.com/o/users%2FNGprqEvRScgzN7AVblfsNUmDAcu1%2Fpublic%2FprofileImage?alt=media&token=43ab0cad-72ed-4cae-875f-348470af49e5",
-};
+// const defaultProfilePic = {
+// 	storagePath: "/users/NGprqEvRScgzN7AVblfsNUmDAcu1/public/profileImage",
+// 	downloadURL:
+// 		"https://firebasestorage.googleapis.com/v0/b/classroom-door.appspot.com/o/users%2FNGprqEvRScgzN7AVblfsNUmDAcu1%2Fpublic%2FprofileImage?alt=media&token=43ab0cad-72ed-4cae-875f-348470af49e5",
+// };
 
-const invalidFirstNames = [
-	"R",
-	"Al",
-	"Sena",
-	"A",
-	"Asfsds",
-	"Xefdfxdxxfdxfdxfszfs",
-	"A",
-	"p41",
-	"Inci",
-	"D",
-	"Afsetgdsrgs",
-	"Abhijeet",
-	"Fsdf",
-	"First",
-	"Test",
-	"Congress",
-	"ab",
-	"Shiv",
-	"Tharak",
-	"Prakash",
-	"Test user",
-	"Dnyanesh",
-	"Dnyanesh",
-	"Bio",
-	"Sssaa",
-	"Ajit",
-	"test",
-	"Sdsd",
-	"Jhvjhv",
-	"Particle",
-	"Test",
-	"John",
-	"Sachin",
-	"ABHIJEER",
-	"A",
-	"Jamia",
-	"Beti",
-	"Dgsfg",
-	"Dan",
-	"Karni",
-	"Prakash",
-	"Ra",
-	"First",
-	"Raja",
-];
+// const invalidFirstNames = [
+// 	"R",
+// 	"Al",
+// 	"Sena",
+// 	"A",
+// 	"Asfsds",
+// 	"Xefdfxdxxfdxfdxfszfs",
+// 	"A",
+// 	"p41",
+// 	"Inci",
+// 	"D",
+// 	"Afsetgdsrgs",
+// 	"Abhijeet",
+// 	"Fsdf",
+// 	"First",
+// 	"Test",
+// 	"Congress",
+// 	"ab",
+// 	"Shiv",
+// 	"Tharak",
+// 	"Prakash",
+// 	"Test user",
+// 	"Dnyanesh",
+// 	"Dnyanesh",
+// 	"Bio",
+// 	"Sssaa",
+// 	"Ajit",
+// 	"test",
+// 	"Sdsd",
+// 	"Jhvjhv",
+// 	"Particle",
+// 	"Test",
+// 	"John",
+// 	"Sachin",
+// 	"ABHIJEER",
+// 	"A",
+// 	"Jamia",
+// 	"Beti",
+// 	"Dgsfg",
+// 	"Dan",
+// 	"Karni",
+// 	"Prakash",
+// 	"Ra",
+// 	"First",
+// 	"Raja",
+// ];
 
 export const removeAllNonFirstNameUsers = async () => {
-	console.log("invalidFirstNames", invalidFirstNames);
-	console.log("defaultProfilePic", defaultProfilePic);
-
 	const usersQuery = await userCollection.get();
 	const userDocs = usersQuery.docs.map((docItem) => {
 		// const data = docItem.data();
 		return docItem.id;
 	});
+
 	return userDocs;
 
 	// const chatRef = await getChatsRef(chatTypes.GROUP_CHATS)
@@ -83,7 +81,11 @@ export const removeAllNonFirstNameUsers = async () => {
 
 	// const groupIds = Object.values(chatsVal).map((chat: any) => {
 	// 	const { meta } = chat;
-	// 	if (meta.isGroup) {
+	// 	const { members = [] } = meta;
+
+	// 	const difference = members.filter((x) => !userDocs.includes(x));
+
+	// 	if (difference.length > 0) {
 	// 		return meta.id;
 	// 	} else {
 	// 		return null;
