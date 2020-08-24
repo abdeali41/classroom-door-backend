@@ -1,5 +1,7 @@
 import {
 	userCollection,
+	// getChatsRef,
+	// getChatRef,
 	// teacherCollection,
 	// studentCollection,
 	// teacherCollection,
@@ -7,6 +9,7 @@ import {
 	// userMetaCollection,
 	// firestoreDB,
 } from "../db";
+// import { chatTypes } from "../libs/constants";
 // import * as admin from "firebase-admin";
 
 const defaultProfilePic = {
@@ -69,12 +72,44 @@ export const removeAllNonFirstNameUsers = async () => {
 	const usersQuery = await userCollection.get();
 	const userDocs = usersQuery.docs.map((docItem) => {
 		// const data = docItem.data();
-		return docItem.ref;
+		return docItem.id;
 	});
-
 	return userDocs;
 
-	// const invalidUserIds = userDocs.filter((d) => d !== null);
+	// const chatRef = await getChatsRef(chatTypes.GROUP_CHATS)
+	// 	.orderByKey()
+	// 	.once("value");
+	// const chatsVal = chatRef.val();
+
+	// const groupIds = Object.values(chatsVal).map((chat: any) => {
+	// 	const { meta } = chat;
+	// 	if (meta.isGroup) {
+	// 		return meta.id;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// });
+
+	// const filteredGroupIds = groupIds.filter((d) => d !== null);
+
+	// const deleteGroupChats = filteredGroupIds.map(async (gId) => {
+	// 	await getChatRef(chatTypes.GROUP_CHATS, gId).remove();
+	// 	return gId;
+	// });
+
+	// return Promise.all(deleteGroupChats);
+
+	// const userDocs = usersQuery.docs.map(async (docItem) => {
+	// 	const data = docItem.data();
+	// 	const { chats = [] } = data;
+
+	// 	const newChats = chats.filter((x) => !filteredGroupIds.includes(x));
+	// 	console.log("newChats", newChats);
+	// 	await userCollection.doc(docItem.id).update({ chats: newChats });
+	// 	return docItem.id;
+	// });
+
+	// return Promise.all(userDocs);
 
 	// const changedTeacher = invalidUserIds.map(async (userId: any) => {
 	// 	await studentCollection.doc(userId).update({
