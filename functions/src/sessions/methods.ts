@@ -85,7 +85,10 @@ export const createEpicboardSession = async (
 	const allRequestSlots: requestThreadSlotMapType = latestRequestMap.slots;
 
 	const newRoomId = generateNewRoomID();
-	const approvedSessionIdList: string[] = Object.keys(allRequestSlots)
+	const approvedSessions: {
+		sessionId: string;
+		sessionTime: string;
+	}[] = Object.keys(allRequestSlots)
 		.filter(
 			(slotKey) =>
 				!allRequestSlots[slotKey].deleted &&
@@ -117,10 +120,17 @@ export const createEpicboardSession = async (
 				epicboardSessionCollection.doc(epicboardSessionId),
 				sessionObj
 			);
-			return epicboardSessionId; // returning to list of session ids for pushing to ROOM DATA
+			return {
+				sessionId: epicboardSessionId,
+				sessionTime: allRequestSlots[approvedSlotKey].suggestedDateTime,
+			}; // returning to  object of session for pushing to ROOM DATA
 		});
 
 	await epicboardSessionBatchWrite.commit();
+
+	const approvedSessionIdList: string[] = approvedSessions.map(
+		(sess) => sess.sessionId
+	);
 
 	console.log("Create Session Batch done::", approvedSessionIdList);
 
@@ -138,6 +148,8 @@ export const createEpicboardSession = async (
 	});
 
 	console.log("Session:: Done Updating the Booking Object.", bookingId);
+
+	return approvedSessions;
 };
 
 // Fetch Functions Booking Request for user

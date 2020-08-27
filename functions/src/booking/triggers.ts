@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import { firestoreCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { createEpicboardSession } from "../sessions/methods";
-import { updateBookingRequestStatus } from "./methods";
+import { updateBookingRequestStatus, updateConnectedPeople } from "./methods";
 
 /** BOOKING TRIGGERS **/
 
@@ -36,9 +36,14 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 			bookingRequestBeforeData.status !== BOOKING_REQUEST_STATUS_CODES.CONFIRMED
 		) {
 			// Trigger new Session and new room from here
-			await createEpicboardSession(bookingRequestAfterData, bookingRequestId);
+			const approvedSessions = await createEpicboardSession(
+				bookingRequestAfterData,
+				bookingRequestId
+			);
 			// create session data for booking request Updated
 			// list of session ids
+
+			await updateConnectedPeople(bookingRequestAfterData, approvedSessions);
 		}
 		// add session
 		await updateBookingRequestStatus(bookingRequestId, bookingRequestAfterData);

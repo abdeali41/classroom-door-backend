@@ -1,7 +1,11 @@
+import * as moment from "moment";
+import * as admin from "firebase-admin";
 import {
 	userMetaCollection,
 	firestoreDB,
 	bookingRequestCollection,
+	teacherCollection,
+	userCollection,
 } from "../db";
 import {
 	addModifiedTimeStamp,
@@ -10,7 +14,7 @@ import {
 } from "../libs/generics";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { SESSION_TYPES } from "../libs/constants";
+import { SESSION_TYPES, UserTypes } from "../libs/constants";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -366,4 +370,121 @@ export const updateBookingRequest = async (
 				throw new Error("Updated Booking Request Failed");
 			});
 	});
+};
+
+const getLatestRequest = (requestThread: any) => {
+	const latestKey = Math.max(
+		...Object.keys(requestThread).map((r) => parseFloat(r))
+	);
+	return requestThread[latestKey] || { slots: {} };
+};
+
+export const groupSessionsByStudent = (sessions: Array<any>) => {
+	const groupedSessionObject = {};
+	sessions.forEach((session) => {
+		const { studentId, startTime } = session;
+
+		if (!groupedSessionObject[studentId]) {
+			groupedSessionObject[studentId] = session;
+		} else {
+			const prevStartTime = groupedSessionObject[studentId].startTime;
+			const isThisBefore = moment(startTime).isBefore(prevStartTime);
+			const isThisAfter = moment(startTime).isAfter(prevStartTime);
+			const isUpcoming = moment().isBefore(startTime);
+			if (
+				(isUpcoming && isThisBefore) ||
+				(!isUpcoming && isThisAfter) ||
+				(isUpcoming && isThisAfter)
+			) {
+				groupedSessionObject[studentId] = session;
+			}
+		}
+	});
+
+	const groupedSessions: any = Object.values(groupedSessionObject).sort(
+		(a: any, b: any) => {
+			const asTime: any = new Date(a.startTime);
+			const bsTime: any = new Date(b.startTime);
+			return asTime - bsTime;
+		}
+	);
+
+	return groupedSessions;
+};
+
+export const addHoursTutorMeta = async (booking: any) => {
+	const { requestThread, teacherId } = booking;
+	const latestRequest = getLatestRequest(requestThread);
+	const totalSessionLength = Object.values(latestRequest.slots).reduce(
+		(total, curr: any) => total + curr.sessionLength,
+		0
+	);
+
+	const userMetaSnap = await userMetaCollection.doc(teacherId).get();
+	const userMeta: any = userMetaSnap.data();
+	const { minutesTutoring } = userMeta;
+	const newMinutes = minutesTutoring + totalSessionLength;
+	await userMetaCollection
+		.doc(teacherId)
+		.update({ minutesTutoring: newMinutes });
+};
+
+export const updateConnectedPeople = async (
+	booking: any,
+	approvedSessions: any
+) => {
+	const { studentId, teacherId } = booking;
+
+	// Update connected people for student side
+	const teacherSnap = await teacherCollection.doc(teacherId).get();
+	const teacherUserSnap = await userCollection.doc(teacherId).get();
+	const teacherData: any = teacherSnap.data();
+	const teacherUserData: any = teacherUserSnap.data();
+	const { teacherType } = teacherData;
+	const {
+		firstName: teacherFirstName,
+		lastName: teacherLastName,
+		profilePic: teacherProfilePic,
+	} = teacherUserData;
+
+	await userMetaCollection
+		.doc(studentId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.doc(teacherId)
+		.set(
+			{
+				type: teacherType,
+				firstName: teacherFirstName,
+				lastName: teacherLastName,
+				profilePic: teacherProfilePic,
+				userId: teacherId,
+				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
+			},
+			{ merge: true }
+		);
+
+	// Update connected people for tutor side
+	const studentUserSnap = await userCollection.doc(teacherId).get();
+	const studentUserData: any = studentUserSnap.data();
+	const {
+		firstName: studentFirstName,
+		lastName: studentLastName,
+		profilePic: studentProfilePic,
+	} = studentUserData;
+
+	await userMetaCollection
+		.doc(teacherId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.doc(studentId)
+		.set(
+			{
+				type: UserTypes.STUDENT,
+				firstName: studentFirstName,
+				lastName: studentLastName,
+				profilePic: studentProfilePic,
+				userId: studentId,
+				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
+			},
+			{ merge: true }
+		);
 };

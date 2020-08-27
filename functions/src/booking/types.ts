@@ -1,6 +1,6 @@
 type requestThreadSlotType = {
 	sessionLength: Number;
-	suggestedDateTime: String;
+	suggestedDateTime: string;
 	studentAccepted: Boolean;
 	deleted: Boolean;
 };

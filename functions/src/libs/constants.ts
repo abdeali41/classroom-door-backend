@@ -96,3 +96,9 @@ export const chatTypes = {
 	ROOM_CHATS: "room-chats",
 	GROUP_CHATS: "group-chats",
 };
+
+// user types // to be change
+export const UserTypes = {
+	STUDENT: "Student",
+	TEACHER: "Tutor/Counsellor",
+};

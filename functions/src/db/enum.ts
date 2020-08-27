@@ -24,6 +24,7 @@ export enum userMetaSubCollectionKeys {
 	BOOKING_REQUEST = "booking-request",
 	EPICBOARD_SESSION = "epicboard-session",
 	EPICBOARD_ROOM = "epicboard-room",
+	CONNECTED_PEOPLE = "connected-people",
 }
 
 export enum epicboardRoomSubCollectionKeys {
