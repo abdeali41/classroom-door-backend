@@ -25,6 +25,7 @@ import {
 	getLastRequestObject,
 	updateBookingRequestStatus,
 } from "../booking/methods";
+import { SESSION_TYPES } from "../libs/constants";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
@@ -375,6 +376,8 @@ export const joinEpicboardSession = async (
 		startTime,
 		sessionLength,
 		subjects,
+		studentId,
+		sessionType,
 	}: any = epicboardSession;
 
 	const endTime = moment(startTime).add(sessionLength, "minutes");
@@ -399,13 +402,30 @@ export const joinEpicboardSession = async (
 
 		const roomInfo = {
 			name: roomName,
-			presenterIds: [teacherId],
+			presenterIds:
+				sessionType === SESSION_TYPES.SINGLE
+					? [teacherId, studentId]
+					: [teacherId],
 			ownerId: teacherId,
 			activeBoard: 0,
 			currentSessionId: sessionId,
 		};
 		await createRoom(roomId, roomInfo);
 		await addUsersToRoom(roomId, memberIdList);
+		await userMetaCollection
+			.doc(studentId)
+			.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+			.doc(teacherId)
+			.update({
+				lastSession: {
+					roomId,
+					startTime,
+					sessionLength,
+					subjects,
+					sessionType,
+					sessionId,
+				},
+			});
 	} else {
 		await getRoomCurrentSessionRef(roomId).set(sessionId);
 	}
