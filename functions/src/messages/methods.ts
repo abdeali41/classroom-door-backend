@@ -4,8 +4,9 @@ import {
 	getChatsRef,
 	getChatMetaRef,
 	getChatConversationRef,
+	userMetaCollection,
 } from "../db";
-import { chatTypes } from "../db/enum";
+import { chatTypes, userMetaSubCollectionKeys } from "../db/enum";
 
 const { database, firestore } = admin;
 
@@ -156,4 +157,28 @@ export const getUserMessages = async (
 		messages,
 		archived,
 	};
+};
+
+export const getConnectedPeople = async (
+	params: userMessagesParams
+): Promise<any> => {
+	const { userId } = params;
+	const userConnectedPeopleSnapshot = await userMetaCollection
+		.doc(userId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.get();
+
+	const peoples = userConnectedPeopleSnapshot.docs.map((snap) => {
+		const snapData = snap.data();
+		const {
+			type,
+			firstName,
+			lastName,
+			profilePic,
+			userId: peopleId,
+		} = snapData;
+		return { type, firstName, lastName, profilePic, userId: peopleId };
+	});
+
+	return peoples;
 };
