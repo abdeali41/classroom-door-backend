@@ -102,3 +102,10 @@ export const UserTypes = {
 	STUDENT: "Student",
 	TEACHER: "Tutor/Counsellor",
 };
+
+//teacher types // to be change
+export const TeacherTypes = {
+	TUTORING: "Tutoring",
+	COUNSELING: "Counseling",
+	TUTORING_AND_COUNSELING: "Tutoring & Counseling",
+};

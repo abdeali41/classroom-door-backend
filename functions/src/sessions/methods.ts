@@ -26,7 +26,7 @@ import {
 	getLastRequestObject,
 	updateBookingRequestStatus,
 } from "../booking/methods";
-import { SESSION_TYPES, UserTypes } from "../libs/constants";
+import { SESSION_TYPES, UserTypes, TeacherTypes } from "../libs/constants";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
@@ -274,33 +274,42 @@ export const getUserTutorCounselors = async (
 ): Promise<getUserTutorCounselorsReturnType> => {
 	const { userId } = params;
 
-	const userEpicboardSessionsSnapshot = await userMetaCollection
+	const userConnectedPeopleSnapshot = await userMetaCollection
 		.doc(userId)
-		.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
-		.orderBy("startTime")
-		.where("status", "==", 1)
-		.limit(10)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.where("type", "in", [
+			TeacherTypes.TUTORING,
+			TeacherTypes.COUNSELING,
+			TeacherTypes.TUTORING_AND_COUNSELING,
+		])
 		.get();
 
-	const allBookingData = userEpicboardSessionsSnapshot.docs.map(
-		async (epicboardSessionDoc) => {
-			const epicboardSessionData = epicboardSessionDoc.data();
+	const tutors: object[] = [];
+	const counselors: object[] = [];
 
-			const sessionSnapshot = await epicboardSessionCollection
-				.doc(epicboardSessionData.id)
-				.get();
-			return {
-				id: epicboardSessionData.id,
-				...sessionSnapshot.data(),
-			};
+	userConnectedPeopleSnapshot.docs.forEach((snap) => {
+		const snapData = snap.data();
+		const { lastSession, type, firstName, lastName } = snapData;
+		const session = {
+			teacherId: snap.id,
+			teacherName: `${firstName} ${lastName}`,
+			status: 1,
+			...lastSession,
+		};
+
+		if (type === TeacherTypes.TUTORING_AND_COUNSELING) {
+			tutors.push(session);
+			counselors.push(session);
+		} else if (type === TeacherTypes.TUTORING) {
+			tutors.push(session);
+		} else if (type === TeacherTypes.COUNSELING) {
+			counselors.push(session);
 		}
-	);
-
-	const sessions = await Promise.all(allBookingData);
+	});
 
 	return {
-		tutors: sessions,
-		counselors: [],
+		tutors,
+		counselors,
 	};
 };
 
