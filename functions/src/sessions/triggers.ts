@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import {
 	updateEpicboardSessionStatus,
 	updateEpicboardRoomStatus,
+	updateMinutesTutoringOfTutor,
 } from "./methods";
 import {
 	firestoreCollectionKeys,
@@ -106,6 +107,8 @@ export const onUserEpicboardRoomJoinActivity = functions.database
 				},
 				{ merge: true }
 			);
+
+		await updateMinutesTutoringOfTutor(userId, status);
 
 		return null;
 	});

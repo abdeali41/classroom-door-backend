@@ -1,4 +1,4 @@
-import { database } from "firebase-admin";
+import { database, firestore } from "firebase-admin";
 import * as moment from "moment";
 import {
 	addModifiedTimeStamp,
@@ -18,6 +18,7 @@ import {
 	getRoomMetaRef,
 	getRoomUserRef,
 	getRoomRef,
+	userCollection,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { isBetweenInterval } from "../libs/date-utils";
@@ -25,7 +26,7 @@ import {
 	getLastRequestObject,
 	updateBookingRequestStatus,
 } from "../booking/methods";
-import { SESSION_TYPES } from "../libs/constants";
+import { SESSION_TYPES, UserTypes } from "../libs/constants";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
@@ -431,4 +432,20 @@ export const joinEpicboardSession = async (
 	}
 
 	return { roomId, message: "Epicboard Session created" };
+};
+
+export const updateMinutesTutoringOfTutor = async (userId, activityTime) => {
+	const userSnap = await userCollection.doc(userId).get();
+	const userData: any = userSnap.data();
+	const { userType } = userData;
+
+	if (userType === UserTypes.TEACHER) {
+		const onlineTime = moment(activityTime.online);
+		const offlineTime = moment(activityTime.offline);
+
+		const diffInMinutes = offlineTime.diff(onlineTime, "seconds") / 60;
+		await userMetaCollection.doc(userId).update({
+			minutesTutoring: firestore.FieldValue.increment(diffInMinutes),
+		});
+	}
 };
