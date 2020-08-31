@@ -87,3 +87,8 @@ type getAllBookingsForUserReturnType = {
 type updateBookingRequestReturnType = {
 	updatedBookingRequest: object | undefined;
 };
+
+type teacherPendingBookingRequestCountReturnType = {
+	count: number;
+	students: { name: string; avatarUrl: string }[];
+};

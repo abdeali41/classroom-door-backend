@@ -7,6 +7,7 @@ enum actionTypes {
 	GET_BOOKING_REQUESTS = "GET_BOOKING_REQUESTS", // FETCH BOOKING REQUEST
 	GET_BOOKING_REQUEST_BY_ID = "GET_BOOKING_REQUEST_BY_ID", // FETCH BOOKING REQUEST BY ID
 	UPDATE_BOOKING_REQUEST = "UPDATE_BOOKING_REQUEST", // UPDATE BOOKING REQUEST
+	TEACHER_PENDING_BOOKING_REQUEST_COUNT = "TEACHER_PENDING_BOOKING_REQUEST_COUNT", // GET TEACHER PENDING REQUEST COUNT
 }
 
 /** BOOKING CALLABLE  **/
@@ -34,6 +35,9 @@ export const booking = functions.https.onCall(
 				break;
 			case actionTypes.UPDATE_BOOKING_REQUEST:
 				result = await methods.updateBookingRequest({ ...data, userId });
+				break;
+			case actionTypes.TEACHER_PENDING_BOOKING_REQUEST_COUNT:
+				result = await methods.teacherPendingBookingRequestCount({ userId });
 				break;
 			default:
 				result = null;

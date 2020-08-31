@@ -488,3 +488,27 @@ export const updateConnectedPeople = async (
 			{ merge: true }
 		);
 };
+
+// Return count of pending requests
+export const teacherPendingBookingRequestCount = async (
+	params: getAllBookingsForUserParams
+): Promise<teacherPendingBookingRequestCountReturnType> => {
+	const { userId } = params;
+
+	const pendingBookingsSnapshot = await userMetaCollection
+		.doc(userId)
+		.collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
+		.where(
+			"status",
+			"==",
+			BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION
+		)
+		.get();
+
+	const pendingRequestCount = pendingBookingsSnapshot.docs.length;
+
+	return {
+		count: pendingRequestCount,
+		students: [],
+	};
+};
