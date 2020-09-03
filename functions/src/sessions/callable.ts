@@ -8,6 +8,7 @@ enum actionTypes {
 	GET_UPCOMING_SESSIONS = "GET_UPCOMING_SESSIONS", // FETCH UPCOMING EPICBOARD SESSIONS LIMITED
 	GET_USER_TUTOR_COUNSELOR = "GET_USER_TUTOR_COUNSELOR", // FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
 	JOIN_EPICBOARD_SESSION = "JOIN_EPICBOARD_SESSION", // FETCH ALL TUTOR COUNSELORS WITH WHOM USER HAS SESSIONS
+	GET_PAST_SESSIONS = "GET_PAST_SESSIONS" // FETCH ALL PAST SESSIONS
 }
 
 /** SESSIONS CALLABLE  **/
@@ -24,6 +25,9 @@ export const sessions = functions.https.onCall(
 		switch (actionType) {
 			case actionTypes.GET_ALL_SESSIONS:
 				result = await methods.getAllSessions({ userId });
+				break;
+			case actionTypes.GET_PAST_SESSIONS:
+				result = await methods.getPastSessions({ userId });
 				break;
 			case actionTypes.GET_UPCOMING_SESSIONS:
 				const { limit } = data;

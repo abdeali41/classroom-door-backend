@@ -22,6 +22,23 @@ export const getEpicboardSessions = functions.https.onRequest(
 	}
 );
 
+export const getPastSession = functions.https.onRequest(
+	async (req, res) => {
+		const { userId } = req.body;
+
+		methods
+			.getPastSessions({ userId })
+			.then(({ sessions })=> {
+				console.log(sessions);
+				SendResponse(res).success("Past sessions found", sessions);
+			})
+			.catch((err)=> {
+				console.log(err);
+				SendResponse(res).success("Past Sessions Not Found", err)
+			})
+	}
+);
+
 // FETCH UPCOMING EPICBOARD SESSIONS LIMITED
 export const getUpcomingEpicboardSessions = functions.https.onRequest(
 	async (req, res) => {

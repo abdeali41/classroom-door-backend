@@ -165,6 +165,29 @@ export const getAllSessions = async (
 	return { sessions };
 };
 
+//Fetch all past sessions data
+export const getPastSessions = async (params: sessionsParams): Promise<sessionsReturnType> => {
+	const { userId } = params;
+
+	const userPastSessions = await userMetaCollection
+		.doc(userId)
+		.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
+		.where("status","==", EPICBOARD_SESSION_STATUS_CODES.ENDED)
+		.get();
+
+	const allPastSessions = userPastSessions.docs.map(
+		async (pastSessionsDoc) => {
+			const pastSessionData = pastSessionsDoc.data();
+			return epicboardRoomCollection
+				.doc(pastSessionData.id)
+				.get()
+				.then((data) => ({id: pastSessionData.id, ...data.data() }));
+		}
+	);
+	const sessions = await Promise.all(allPastSessions);
+	return { sessions };	
+};
+
 // Fetch limit Booking sessions for arranged in ascending order of their starting time
 export const getUpcomingSessions = async (
 	params: sessionsWithLimitParams
