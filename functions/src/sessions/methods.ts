@@ -178,7 +178,7 @@ export const getPastSessions = async (params: sessionsParams): Promise<sessionsR
 	const allPastSessions = userPastSessions.docs.map(
 		async (pastSessionsDoc) => {
 			const pastSessionData = pastSessionsDoc.data();
-			return epicboardRoomCollection
+			return epicboardSessionCollection
 				.doc(pastSessionData.id)
 				.get()
 				.then((data) => ({id: pastSessionData.id, ...data.data() }));

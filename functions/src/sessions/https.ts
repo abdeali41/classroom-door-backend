@@ -29,11 +29,9 @@ export const getPastSession = functions.https.onRequest(
 		methods
 			.getPastSessions({ userId })
 			.then(({ sessions })=> {
-				console.log(sessions);
 				SendResponse(res).success("Past sessions found", sessions);
 			})
 			.catch((err)=> {
-				console.log(err);
 				SendResponse(res).success("Past Sessions Not Found", err)
 			})
 	}
