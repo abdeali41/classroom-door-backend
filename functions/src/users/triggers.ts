@@ -25,4 +25,5 @@ export const newUserCreationTrigger = functions.firestore
                 console.log("Error Creating User-Meta Document for: ", snapshot.id)
                 console.log("Error Details: ", err)
             })
+            return
     })
