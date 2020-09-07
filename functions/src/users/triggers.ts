@@ -12,6 +12,7 @@ export const newUserCreationTrigger = functions.firestore
             .doc(snapshot.id)
             .set({
                 avgRating: "0",
+                chats: [],
                 favorites: [],
                 minutesTutoring: 0,
                 reviews: [],
