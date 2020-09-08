@@ -10,7 +10,8 @@
 		"deploy-messages-apis": "firebase deploy --only functions:messages,functions:createGroupChat,functions:getMessagingList -P ${DEPLOY:-default}",
 		"deploy-notification-apis": "firebase deploy --only functions:newMessageNotification -P ${DEPLOY:-default}",
 		"deploy-crons": "firebase deploy --only functions:deleteRTDEpicboardRoom -P ${DEPLOY:-default}",
-		"deploy-review-apis": "firebase deploy --only functions:reviews,functions:getAllReviews,functions:onReviewAdded -P ${DEPLOY:-default}"
+		"deploy-review-apis": "firebase deploy --only functions:reviews,functions:getAllReviews,functions:onReviewAdded -P ${DEPLOY:-default}",
+		"deploy-payments-apis": "firebase deploy --only functions:payments -P ${DEPLOY:-default}"
 	},
 	"engines": {
 		"node": "8"

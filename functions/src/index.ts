@@ -29,3 +29,6 @@ export * from "./notifications";
 
 /** REVIEWS/FEEDBACK **/
 export * from "./reviews";
+
+/** PAYMENTS **/
+export * from "./payments";
