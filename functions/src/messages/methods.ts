@@ -30,12 +30,12 @@ export const createChat = async (
 	};
 
 	await getChatMetaRef(chatTypes.GROUP_CHATS, chatId).update(chatMeta);
-	await userCollection.doc(userId).update({
+	await userMetaCollection.doc(userId).update({
 		chats: firestore.FieldValue.arrayUnion(chatId),
 	});
 
 	memberIds.forEach(async (memberId: string) => {
-		await userCollection.doc(memberId).update({
+		await userMetaCollection.doc(memberId).update({
 			chats: firestore.FieldValue.arrayUnion(chatId),
 		});
 	});
@@ -76,10 +76,12 @@ export const getUserMessages = async (
 ): Promise<userMessagesReturnType> => {
 	const { userId } = params;
 
-	const userSnapshot = userCollection.doc(userId).get();
-	const user = (await userSnapshot).data();
+	const userMetaSnapshot = userMetaCollection.doc(userId).get();
+	const userMeta = (await userMetaSnapshot).data();
 
-	const { chats = [] }: any = user;
+	const { chats = [] }: any = userMeta;
+
+	console.log("chats", chats);
 
 	const messagesArr = chats.map(async (chatId: string) => {
 		const lastMessageRef = await getChatConversationRef(
@@ -99,7 +101,7 @@ export const getUserMessages = async (
 			chatId
 		).once("value");
 
-		const chatMeta = chatMetaRef.val();
+		const chatMeta = chatMetaRef.val() || [];
 
 		const memberIdsWithoutUserId = chatMeta.members.filter(
 			(m: string) => m !== userId
