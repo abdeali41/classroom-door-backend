@@ -1,19 +1,12 @@
-// import Stripe from "stripe";
-import Stripe from "stripe";
-
 // import { updateBookingRequest } from "../booking/methods";
+import Stripe from "stripe";
+import stripe from "../libs/Stripe";
 
 export const acceptAndPayForBooking = async (
 	params: acceptAndPayForBookingParams
 ): Promise<any> => {
 	const { stripeToken }: any = params;
-	const stripe = new Stripe(
-		"sk_test_51H33lzEidh2gujSuiBX3hbXp8PgHfAdv83rGfkdXYIEjXsgp4ePn01sD2OoxK80b2v5sRR4mBkBXnG65lM6Av3RJ001VQ2YpYR",
-		{
-			apiVersion: "2020-08-27",
-			typescript: true,
-		}
-	);
+
 	console.log("stripeToken.tokenId", stripeToken.tokenId);
 	// try {
 	// 	const updatedBooking = await updateBookingRequest({ userId, ...booking });
@@ -71,4 +64,29 @@ export const acceptAndPayForBooking = async (
 			message: "Unable to process payment at this moment",
 		};
 	}
+};
+
+export const creatStripeCustomer = async (
+	params: Stripe.CustomerCreateParams
+): Promise<any> => {
+	const { email, name, phone, shipping, payment_method, metadata } = params;
+
+	const customer = await stripe.customers.create({
+		email,
+		name,
+		phone,
+		shipping,
+		payment_method,
+		metadata,
+	});
+
+	return customer;
+};
+
+export const createCardForCustomer = async (params: any) => {
+	const { customerId, cardToken } = params;
+	const card = await stripe.customers.createSource(customerId, {
+		source: cardToken,
+	});
+	return card;
 };
