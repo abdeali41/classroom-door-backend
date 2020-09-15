@@ -445,6 +445,7 @@ export const updateConnectedPeople = async (
 		firstName: teacherFirstName,
 		lastName: teacherLastName,
 		profilePic: teacherProfilePic,
+		email: teacherEmail,
 	} = teacherUserData;
 
 	await userMetaCollection
@@ -458,18 +459,20 @@ export const updateConnectedPeople = async (
 				lastName: teacherLastName,
 				profilePic: teacherProfilePic,
 				userId: teacherId,
+				email: teacherEmail,
 				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
 			},
 			{ merge: true }
 		);
 
 	// Update connected people for tutor side
-	const studentUserSnap = await userCollection.doc(teacherId).get();
+	const studentUserSnap = await userCollection.doc(studentId).get();
 	const studentUserData: any = studentUserSnap.data();
 	const {
 		firstName: studentFirstName,
 		lastName: studentLastName,
 		profilePic: studentProfilePic,
+		email: studentEmail,
 	} = studentUserData;
 
 	await userMetaCollection
@@ -483,6 +486,7 @@ export const updateConnectedPeople = async (
 				lastName: studentLastName,
 				profilePic: studentProfilePic,
 				userId: studentId,
+				email: studentEmail,
 				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
 			},
 			{ merge: true }

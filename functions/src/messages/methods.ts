@@ -178,8 +178,9 @@ export const getConnectedPeople = async (
 			lastName,
 			profilePic,
 			userId: peopleId,
+			email,
 		} = snapData;
-		return { type, firstName, lastName, profilePic, userId: peopleId };
+		return { type, firstName, lastName, profilePic, userId: peopleId, email };
 	});
 
 	return peoples;
