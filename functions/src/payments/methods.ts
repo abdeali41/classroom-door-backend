@@ -1,5 +1,7 @@
+import { firestore } from "firebase-admin";
 // import { updateBookingRequest } from "../booking/methods";
 import Stripe from "stripe";
+import { userMetaCollection } from "../db";
 import stripe from "../libs/Stripe";
 
 export const acceptAndPayForBooking = async (
@@ -89,4 +91,25 @@ export const createCardForCustomer = async (params: any) => {
 		source: cardToken,
 	});
 	return card;
+};
+
+export const addUserCard = async (params: any) => {
+	try {
+		const { customerId, cardToken, userId } = params;
+		const card = await createCardForCustomer({ customerId, cardToken });
+
+		console.log("customerId", customerId);
+		console.log("card", card);
+
+		await userMetaCollection
+			.doc(userId)
+			.update({ stripeCards: firestore.FieldValue.arrayUnion(card) });
+		return { message: "Card added successfully", card };
+	} catch (err) {
+		return { message: err };
+	}
+};
+
+export const retrieveCustomer = async (customerId) => {
+	return stripe.customers.retrieve(customerId);
 };

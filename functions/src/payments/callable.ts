@@ -1,9 +1,10 @@
 import * as functions from "firebase-functions";
-import { acceptAndPayForBooking } from "./methods";
+import * as methods from "./methods";
 import { validateAuthAndActionType } from "../libs/validation";
 
 enum actionTypes {
 	PROCESS_PAYMENT_FOR_BOOKING = "PROCESS_PAYMENT_FOR_BOOKING", // PROCESS PAYMENT FOR BOOKING
+	ATTACH_CARD_TO_STRIPE_CUSTOMER = "ATTACH_CARD_TO_STRIPE_CUSTOMER", // ATTACH A CARD TO CUSTOMER ID OF STRIPE USING CARD TOKEN
 }
 
 /** PAYMENTS CALLABLE  **/
@@ -20,7 +21,10 @@ export const payments = functions.https.onCall(
 
 		switch (actionType) {
 			case actionTypes.PROCESS_PAYMENT_FOR_BOOKING:
-				result = await acceptAndPayForBooking({ userId, ...data });
+				result = await methods.acceptAndPayForBooking({ userId, ...data });
+				break;
+			case actionTypes.ATTACH_CARD_TO_STRIPE_CUSTOMER:
+				result = await methods.addUserCard({ userId, ...data });
 				break;
 			default:
 				result = null;

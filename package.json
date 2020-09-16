@@ -2,7 +2,7 @@
 	"name": "tcd-backend",
 	"scripts": {
 		"deploy-all-apis": "firebase deploy --only functions -P ${DEPLOY:-default}",
-		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage -P ${DEPLOY:-default}",
+		"deploy-user-apis": "firebase deploy --only functions:users,functions:roomMembers,functions:userImage,functions:newUserCreationTrigger -P ${DEPLOY:-default}",
 		"deploy-teacher-apis": "firebase deploy --only functions:teachers,functions:getTeachers,functions:getTeacher -P ${DEPLOY:-default}",
 		"deploy-students-apis": "firebase deploy --only functions:students,functions:getStudents,functions:toggleMarkAsFavorite -P ${DEPLOY:-default}",
 		"deploy-booking-apis": "firebase deploy --only functions:booking,functions:createBookingRequest,functions:getBookingRequests,functions:getBookingRequestById,functions:updateBookingRequest,functions:onCreateBookingRequestTrigger,functions:onUpdateBookingRequestTrigger -P ${DEPLOY:-default}",
