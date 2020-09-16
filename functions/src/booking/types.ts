@@ -68,6 +68,7 @@ type createBookingRequestParams = {
 	teacherHourlyRate: number;
 	totalSessionLength: number;
 	sessionRequests: object[];
+	subjects: string[],
 	teacherGroupSessionRate: number;
 };
 
