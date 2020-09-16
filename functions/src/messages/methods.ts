@@ -147,8 +147,9 @@ export const getUserMessages = async (
 
 	const archived = allMessages
 		.filter((msg: any) => {
+			const deletedBy = msg.deletedBy || {};
 			const archivedBy = msg.archivedBy || {};
-			if (archivedBy[userId]) {
+			if (archivedBy[userId] && !deletedBy[userId]) {
 				return true;
 			}
 			return false;
