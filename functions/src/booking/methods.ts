@@ -59,6 +59,7 @@ export const createBookingRequest = async (
 		teacherHourlyRate,
 		totalSessionLength,
 		sessionRequests,
+		subjects,
 		teacherGroupSessionRate,
 	} = params;
 
@@ -89,7 +90,7 @@ export const createBookingRequest = async (
 		teacherGroupSessionRate,
 		totalSessionLength,
 		sessionType: SESSION_TYPES.SINGLE,
-		subjects: [],
+		subjects: subjects,
 		initialRequest,
 		requestThread,
 	});
