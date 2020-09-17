@@ -1,5 +1,5 @@
 type requestThreadSlotType = {
-	sessionLength: Number;
+	sessionLength: number;
 	suggestedDateTime: string;
 	studentAccepted: Boolean;
 	deleted: Boolean;
@@ -70,6 +70,9 @@ type createBookingRequestParams = {
 	sessionRequests: object[];
 	subjects: string[],
 	teacherGroupSessionRate: number;
+	subjects: string[];
+	studentStripeCardId: string;
+	studentStripeCustomerId: string;
 };
 
 type createBookingRequestReturnType = {

@@ -15,6 +15,7 @@ import {
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { SESSION_TYPES, UserTypes } from "../libs/constants";
+import { acceptAndPayForBooking } from "../payments/methods";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -63,8 +64,10 @@ export const createBookingRequest = async (
 		teacherHourlyRate,
 		totalSessionLength,
 		sessionRequests,
-		subjects,
 		teacherGroupSessionRate,
+		studentStripeCardId,
+		studentStripeCustomerId,
+		subjects,
 	} = params;
 
 	const initialRequest = sessionRequests.reduce(
@@ -94,9 +97,11 @@ export const createBookingRequest = async (
 		teacherGroupSessionRate,
 		totalSessionLength,
 		sessionType: SESSION_TYPES.SINGLE,
-		subjects: subjects,
+		subjects,
 		initialRequest,
 		requestThread,
+		studentStripeCardId,
+		studentStripeCustomerId,
 	});
 
 	// adding to booking-request collection
@@ -286,7 +291,7 @@ export const updateBookingRequest = async (
 	return firestoreDB.runTransaction((transaction) => {
 		return transaction
 			.get(bookingRequestDocRef)
-			.then((bookingRequestDoc) => {
+			.then(async (bookingRequestDoc) => {
 				if (!bookingRequestDoc.exists) {
 					console.log("Booking not exists");
 					throw new Error("Booking does not Exists");
@@ -355,8 +360,18 @@ export const updateBookingRequest = async (
 						updatedSlotRequests,
 						studentComment
 					);
-					transaction.update(bookingRequestDocRef, newBookingRequestData);
-					return newBookingRequestData;
+					if (allChangesApprovedByStudent) {
+						const paid = await acceptAndPayForBooking(newBookingRequestData);
+						if (paid) {
+							transaction.update(bookingRequestDocRef, newBookingRequestData);
+							return newBookingRequestData;
+						} else {
+							throw {
+								name: "PaymentError",
+								message: "Unable to process payment",
+							};
+						}
+					}
 				} else {
 					// wrong userID
 					console.log("ERROR:// wrong userID ", userId, newBookingRequestData);
@@ -364,11 +379,7 @@ export const updateBookingRequest = async (
 				}
 				return newBookingRequestData;
 			})
-			.then((updatedBookingRequest) => ({ updatedBookingRequest }))
-			.catch((err) => {
-				console.log("Updated Booking Request Failed", err);
-				throw new Error("Updated Booking Request Failed");
-			});
+			.then((updatedBookingRequest) => ({ updatedBookingRequest }));
 	});
 };
 

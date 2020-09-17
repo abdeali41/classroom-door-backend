@@ -1,70 +1,102 @@
 import { firestore } from "firebase-admin";
 // import { updateBookingRequest } from "../booking/methods";
 import Stripe from "stripe";
-import { userMetaCollection } from "../db";
+import {
+	userMetaCollection,
+	transactionCollection,
+	userCollection,
+} from "../db";
 import stripe from "../libs/Stripe";
+import { getLastRequestObject } from "../booking/methods";
+import { SESSION_TYPES } from "../libs/constants";
 
-export const acceptAndPayForBooking = async (
-	params: acceptAndPayForBookingParams
-): Promise<any> => {
-	const { stripeToken }: any = params;
-
-	console.log("stripeToken.tokenId", stripeToken.tokenId);
-	// try {
-	// 	const updatedBooking = await updateBookingRequest({ userId, ...booking });
-	// } catch (e) {
-	// 	return {
-	// 		message: "Unable to make accept booking",
-	// 	};
-	// }
-
+export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 	try {
-		const charge = await stripe.charges.create({
-			amount: 2000,
+		const {
+			studentStripeCustomerId,
+			studentStripeCardId,
+			teacherHourlyRate,
+			teacherGroupSessionRate,
+			requestThread,
+			sessionType,
+			studentId,
+			teacherName,
+			subjects,
+		} = params;
+
+		const { latestRequestMap } = getLastRequestObject(requestThread);
+
+		const allRequestSlots = latestRequestMap.slots;
+		const totalSessionLength = Object.keys(latestRequestMap.slots)
+			.filter(
+				(slotKey) =>
+					!allRequestSlots[slotKey].deleted &&
+					!allRequestSlots[slotKey].studentAccepted
+			)
+			.reduce(
+				(total, approvedSlotKey) =>
+					total + allRequestSlots[approvedSlotKey].sessionLength,
+				0
+			);
+		const rate =
+			sessionType === SESSION_TYPES.SINGLE
+				? teacherHourlyRate
+				: teacherGroupSessionRate;
+
+		const totalSessionCost = (rate / 60) * totalSessionLength;
+
+		const studentSnap = await userCollection.doc(studentId).get();
+
+		const { email: studentEmail }: any = studentSnap.data();
+
+		const paymentIntent = await stripe.paymentIntents.create({
+			amount: totalSessionCost * 100,
 			currency: "usd",
-			source: stripeToken.tokenId,
-			description: "My TCD Test Charge ",
-			shipping: { name: "Test", address: { line1: "line1", country: "US" } },
+			confirm: true,
+			customer: studentStripeCustomerId,
+			payment_method: studentStripeCardId,
+			description: `${Object.keys(latestRequestMap.slots).length} ${
+				subjects[0] || ""
+			} sessions with ${teacherName}`,
+			receipt_email: studentEmail,
 		});
-		// const paymentIntent = await stripe.paymentIntents.create({
-		// 	amount: 100,
-		// 	currency: "USD",
-		// 	payment_method: stripeToken,
-		// 	capture_method: "automatic",
-		// 	confirm: true,
-		// });
 
-		// console.log("paymentIntent", paymentIntent);
-		console.log("charge.id", charge.id);
+		console.log("paymentIntent", paymentIntent);
 
-		if (charge && charge.id && charge.status === "succeeded") {
-			// const capturedPay = await stripe.paymentIntents.capture(
-			// 	paymentIntent.id,
-			// 	{
-			// 		amount_to_capture: 100,
-			// 	}
-			// );
+		if (paymentIntent.status === "succeeded") {
+			const charges = paymentIntent.charges.data.map((ch) => ({
+				id: ch.id,
+				receipt_url: ch.receipt_url,
+				receipt_email: ch.receipt_email,
+				receipt_number: ch.receipt_number,
+				paid: ch.paid,
+				balance_transaction: ch.balance_transaction,
+				shipping: ch.shipping,
+				billing_details: ch.billing_details,
+				captured: ch.captured,
+				created: ch.created,
+				customer: ch.customer,
+			}));
 
-			const captureCharge = await stripe.charges.capture(charge.id);
-			console.log("captureCharge", captureCharge);
-
-			if (captureCharge && captureCharge.status === "succeeded") {
-				return captureCharge;
-			} else {
-				return {
-					message: "Something went wrong with payment",
-				};
-			}
+			await transactionCollection.add({
+				paymentIntentId: paymentIntent.id,
+				status: paymentIntent.status,
+				amount: paymentIntent.amount,
+				currency: paymentIntent.currency,
+				created: paymentIntent.created,
+				description: paymentIntent.description,
+				invoice: paymentIntent.invoice,
+				payment_method: paymentIntent.payment_method,
+				receipt_email: paymentIntent.receipt_email,
+				charges,
+			});
+			return true;
 		} else {
-			return {
-				message: "Something went wrong with payment",
-			};
+			return false;
 		}
 	} catch (err) {
 		console.log("error in payment", err);
-		return {
-			message: "Unable to process payment at this moment",
-		};
+		return false;
 	}
 };
 
@@ -97,9 +129,6 @@ export const addUserCard = async (params: any) => {
 	try {
 		const { customerId, cardToken, userId } = params;
 		const card = await createCardForCustomer({ customerId, cardToken });
-
-		console.log("customerId", customerId);
-		console.log("card", card);
 
 		await userMetaCollection
 			.doc(userId)

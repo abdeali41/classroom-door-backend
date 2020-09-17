@@ -20,9 +20,6 @@ export const payments = functions.https.onCall(
 		let result: any;
 
 		switch (actionType) {
-			case actionTypes.PROCESS_PAYMENT_FOR_BOOKING:
-				result = await methods.acceptAndPayForBooking({ userId, ...data });
-				break;
 			case actionTypes.ATTACH_CARD_TO_STRIPE_CUSTOMER:
 				result = await methods.addUserCard({ userId, ...data });
 				break;

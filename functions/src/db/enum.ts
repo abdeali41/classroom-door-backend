@@ -14,6 +14,7 @@ export enum firestoreCollectionKeys {
 	NOTIFICATIONS = "notifications",
 	REVIEWS = "reviews",
 	SUBJECT_LISTS = "subjectLists",
+	TRANSACTIONS = "transactions",
 }
 
 export enum realtimeDBNodes {

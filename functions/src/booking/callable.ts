@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import * as methods from "./methods";
 import { validateAuthAndActionType } from "../libs/validation";
+import { successTypes } from "../libs/send-response";
 
 enum actionTypes {
 	CREATE_BOOKING_REQUEST = "CREATE_BOOKING_REQUEST", // CREATE BOOKING REQUEST
@@ -34,7 +35,14 @@ export const booking = functions.https.onCall(
 				result = await methods.getBookingById(id);
 				break;
 			case actionTypes.UPDATE_BOOKING_REQUEST:
-				result = await methods.updateBookingRequest({ ...data, userId });
+				try {
+					result = await methods.updateBookingRequest({ ...data, userId });
+				} catch (e) {
+					result = {
+						successType: successTypes.SHOW_MESSAGE,
+						message: e.message,
+					};
+				}
 				break;
 			case actionTypes.TEACHER_PENDING_BOOKING_REQUEST_COUNT:
 				result = await methods.teacherPendingBookingRequestCount({ userId });
