@@ -1,7 +1,11 @@
+import * as moment from "moment";
+import * as admin from "firebase-admin";
 import {
 	userMetaCollection,
 	firestoreDB,
 	bookingRequestCollection,
+	teacherCollection,
+	userCollection,
 } from "../db";
 import {
 	addModifiedTimeStamp,
@@ -10,7 +14,8 @@ import {
 } from "../libs/generics";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { SESSION_TYPES } from "../libs/constants";
+import { SESSION_TYPES, UserTypes } from "../libs/constants";
+import { acceptAndPayForBooking } from "../payments/methods";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -59,8 +64,10 @@ export const createBookingRequest = async (
 		teacherHourlyRate,
 		totalSessionLength,
 		sessionRequests,
-		subjects,
 		teacherGroupSessionRate,
+		studentStripeCardId,
+		studentStripeCustomerId,
+		subjects,
 	} = params;
 
 	const initialRequest = sessionRequests.reduce(
@@ -90,9 +97,11 @@ export const createBookingRequest = async (
 		teacherGroupSessionRate,
 		totalSessionLength,
 		sessionType: SESSION_TYPES.SINGLE,
-		subjects: subjects,
+		subjects,
 		initialRequest,
 		requestThread,
+		studentStripeCardId,
+		studentStripeCustomerId,
 	});
 
 	// adding to booking-request collection
@@ -282,7 +291,7 @@ export const updateBookingRequest = async (
 	return firestoreDB.runTransaction((transaction) => {
 		return transaction
 			.get(bookingRequestDocRef)
-			.then((bookingRequestDoc) => {
+			.then(async (bookingRequestDoc) => {
 				if (!bookingRequestDoc.exists) {
 					console.log("Booking not exists");
 					throw new Error("Booking does not Exists");
@@ -351,8 +360,18 @@ export const updateBookingRequest = async (
 						updatedSlotRequests,
 						studentComment
 					);
-					transaction.update(bookingRequestDocRef, newBookingRequestData);
-					return newBookingRequestData;
+					if (allChangesApprovedByStudent) {
+						const paid = await acceptAndPayForBooking(newBookingRequestData);
+						if (paid) {
+							transaction.update(bookingRequestDocRef, newBookingRequestData);
+							return newBookingRequestData;
+						} else {
+							throw {
+								name: "PaymentError",
+								message: "Unable to process payment",
+							};
+						}
+					}
 				} else {
 					// wrong userID
 					console.log("ERROR:// wrong userID ", userId, newBookingRequestData);
@@ -360,10 +379,151 @@ export const updateBookingRequest = async (
 				}
 				return newBookingRequestData;
 			})
-			.then((updatedBookingRequest) => ({ updatedBookingRequest }))
-			.catch((err) => {
-				console.log("Updated Booking Request Failed", err);
-				throw new Error("Updated Booking Request Failed");
-			});
+			.then((updatedBookingRequest) => ({ updatedBookingRequest }));
 	});
+};
+
+const getLatestRequest = (requestThread: any) => {
+	const latestKey = Math.max(
+		...Object.keys(requestThread).map((r) => parseFloat(r))
+	);
+	return requestThread[latestKey] || { slots: {} };
+};
+
+export const groupSessionsByStudent = (sessions: Array<any>) => {
+	const groupedSessionObject = {};
+	sessions.forEach((session) => {
+		const { studentId, startTime } = session;
+
+		if (!groupedSessionObject[studentId]) {
+			groupedSessionObject[studentId] = session;
+		} else {
+			const prevStartTime = groupedSessionObject[studentId].startTime;
+			const isThisBefore = moment(startTime).isBefore(prevStartTime);
+			const isThisAfter = moment(startTime).isAfter(prevStartTime);
+			const isUpcoming = moment().isBefore(startTime);
+			if (
+				(isUpcoming && isThisBefore) ||
+				(!isUpcoming && isThisAfter) ||
+				(isUpcoming && isThisAfter)
+			) {
+				groupedSessionObject[studentId] = session;
+			}
+		}
+	});
+
+	const groupedSessions: any = Object.values(groupedSessionObject).sort(
+		(a: any, b: any) => {
+			const asTime: any = new Date(a.startTime);
+			const bsTime: any = new Date(b.startTime);
+			return asTime - bsTime;
+		}
+	);
+
+	return groupedSessions;
+};
+
+export const addHoursTutorMeta = async (booking: any) => {
+	const { requestThread, teacherId } = booking;
+	const latestRequest = getLatestRequest(requestThread);
+	const totalSessionLength = Object.values(latestRequest.slots).reduce(
+		(total, curr: any) => total + curr.sessionLength,
+		0
+	);
+
+	const userMetaSnap = await userMetaCollection.doc(teacherId).get();
+	const userMeta: any = userMetaSnap.data();
+	const { minutesTutoring } = userMeta;
+	const newMinutes = minutesTutoring + totalSessionLength;
+	await userMetaCollection
+		.doc(teacherId)
+		.update({ minutesTutoring: newMinutes });
+};
+
+export const updateConnectedPeople = async (
+	booking: any,
+	approvedSessions: any
+) => {
+	const { studentId, teacherId } = booking;
+
+	// Update connected people for student side
+	const teacherSnap = await teacherCollection.doc(teacherId).get();
+	const teacherUserSnap = await userCollection.doc(teacherId).get();
+	const teacherData: any = teacherSnap.data();
+	const teacherUserData: any = teacherUserSnap.data();
+	const { teacherType } = teacherData;
+	const {
+		firstName: teacherFirstName,
+		lastName: teacherLastName,
+		profilePic: teacherProfilePic,
+		email: teacherEmail,
+	} = teacherUserData;
+
+	await userMetaCollection
+		.doc(studentId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.doc(teacherId)
+		.set(
+			{
+				type: teacherType,
+				firstName: teacherFirstName,
+				lastName: teacherLastName,
+				profilePic: teacherProfilePic,
+				userId: teacherId,
+				email: teacherEmail,
+				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
+			},
+			{ merge: true }
+		);
+
+	// Update connected people for tutor side
+	const studentUserSnap = await userCollection.doc(studentId).get();
+	const studentUserData: any = studentUserSnap.data();
+	const {
+		firstName: studentFirstName,
+		lastName: studentLastName,
+		profilePic: studentProfilePic,
+		email: studentEmail,
+	} = studentUserData;
+
+	await userMetaCollection
+		.doc(teacherId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.doc(studentId)
+		.set(
+			{
+				type: UserTypes.STUDENT,
+				firstName: studentFirstName,
+				lastName: studentLastName,
+				profilePic: studentProfilePic,
+				userId: studentId,
+				email: studentEmail,
+				sessions: admin.firestore.FieldValue.arrayUnion(...approvedSessions),
+			},
+			{ merge: true }
+		);
+};
+
+// Return count of pending requests
+export const teacherPendingBookingRequestCount = async (
+	params: getAllBookingsForUserParams
+): Promise<teacherPendingBookingRequestCountReturnType> => {
+	const { userId } = params;
+
+	const pendingBookingsSnapshot = await userMetaCollection
+		.doc(userId)
+		.collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
+		.where(
+			"status",
+			"==",
+			BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION
+		)
+		.get();
+
+	const pendingRequestCount = pendingBookingsSnapshot.docs.length;
+
+	return {
+		count: pendingRequestCount,
+		students: [],
+	};
 };

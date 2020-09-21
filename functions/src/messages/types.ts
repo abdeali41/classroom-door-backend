@@ -4,8 +4,20 @@ type createChatParams = {
 	groupName: string;
 };
 
-type createChatReturnType = {
+type chatMetaType = {
+	id: string;
+	updatedAt: object;
+	createdAt: object;
+	isGroup: boolean;
+	groupName: string;
+	members: string[] | object[];
+};
+
+type createChatReturnType = chatMetaType & {
 	chatId: string;
+	lastMessage: object;
+	members: string[] | object[];
+	memberIds: string[];
 };
 
 type userMessagesParams = {

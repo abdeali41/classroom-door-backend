@@ -2,7 +2,11 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { chatTypes, notificationTypes } from "../libs/constants";
 import { capitalizeName } from "../libs/generics";
-import { userCollection, notificationCollection } from "../db";
+import {
+	userCollection,
+	notificationCollection,
+	getChatMetaUpdatedAtRef,
+} from "../db";
 
 /** NOTIFICATION TRIGGERS **/
 
@@ -15,6 +19,10 @@ export const newMessageNotification = functions.database
 		const messageId = context.params.messageId;
 		const chatType = context.params.chatType;
 		const senderId = message.senderId;
+
+		await getChatMetaUpdatedAtRef(chatType, chatId).set(
+			admin.database.ServerValue.TIMESTAMP
+		);
 
 		const roomMembersPath =
 			chatType === chatTypes.ROOM_CHATS

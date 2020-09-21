@@ -1,6 +1,6 @@
 type requestThreadSlotType = {
-	sessionLength: Number;
-	suggestedDateTime: String;
+	sessionLength: number;
+	suggestedDateTime: string;
 	studentAccepted: Boolean;
 	deleted: Boolean;
 };
@@ -68,8 +68,10 @@ type createBookingRequestParams = {
 	teacherHourlyRate: number;
 	totalSessionLength: number;
 	sessionRequests: object[];
-	subjects: string[],
 	teacherGroupSessionRate: number;
+	subjects: string[];
+	studentStripeCardId: string;
+	studentStripeCustomerId: string;
 };
 
 type createBookingRequestReturnType = {
@@ -86,4 +88,9 @@ type getAllBookingsForUserReturnType = {
 
 type updateBookingRequestReturnType = {
 	updatedBookingRequest: object | undefined;
+};
+
+type teacherPendingBookingRequestCountReturnType = {
+	count: number;
+	students: { name: string; avatarUrl: string }[];
 };

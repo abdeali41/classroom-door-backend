@@ -4,8 +4,9 @@ import {
 	getChatsRef,
 	getChatMetaRef,
 	getChatConversationRef,
+	userMetaCollection,
 } from "../db";
-import { chatTypes } from "../db/enum";
+import { chatTypes, userMetaSubCollectionKeys } from "../db/enum";
 
 const { database, firestore } = admin;
 
@@ -19,26 +20,55 @@ export const createChat = async (
 
 	const isGroup = memberIds.length > 1;
 
-	const chatMeta = {
+	const chatMeta: chatMetaType = {
 		id: chatId,
 		createdAt: database.ServerValue.TIMESTAMP,
+		updatedAt: database.ServerValue.TIMESTAMP,
 		isGroup,
 		members: [...memberIds, userId],
 		groupName: groupName || "",
 	};
 
 	await getChatMetaRef(chatTypes.GROUP_CHATS, chatId).update(chatMeta);
-	await userCollection.doc(userId).update({
+	await userMetaCollection.doc(userId).update({
 		chats: firestore.FieldValue.arrayUnion(chatId),
 	});
 
 	memberIds.forEach(async (memberId: string) => {
-		await userCollection.doc(memberId).update({
+		await userMetaCollection.doc(memberId).update({
 			chats: firestore.FieldValue.arrayUnion(chatId),
 		});
 	});
 
-	return { chatId };
+	const membersQuery = await userCollection
+		.where("userId", "in", memberIds)
+		.get();
+
+	const members = membersQuery.docs.map((doc) => {
+		const {
+			firstName,
+			lastName,
+			userId: mId,
+			profilePic,
+			userType,
+		} = doc.data();
+
+		return {
+			firstName,
+			lastName,
+			userId: mId,
+			profilePic,
+			userType,
+		};
+	});
+
+	return {
+		chatId,
+		...chatMeta,
+		lastMessage: {},
+		members,
+		memberIds,
+	};
 };
 
 export const getUserMessages = async (
@@ -46,10 +76,12 @@ export const getUserMessages = async (
 ): Promise<userMessagesReturnType> => {
 	const { userId } = params;
 
-	const userSnapshot = userCollection.doc(userId).get();
-	const user = (await userSnapshot).data();
+	const userMetaSnapshot = userMetaCollection.doc(userId).get();
+	const userMeta = (await userMetaSnapshot).data();
 
-	const { chats = [] }: any = user;
+	const { chats = [] }: any = userMeta;
+
+	console.log("chats", chats);
 
 	const messagesArr = chats.map(async (chatId: string) => {
 		const lastMessageRef = await getChatConversationRef(
@@ -69,7 +101,7 @@ export const getUserMessages = async (
 			chatId
 		).once("value");
 
-		const chatMeta = chatMetaRef.val();
+		const chatMeta = chatMetaRef.val() || [];
 
 		const memberIdsWithoutUserId = chatMeta.members.filter(
 			(m: string) => m !== userId
@@ -82,7 +114,14 @@ export const getUserMessages = async (
 		const members: Array<any> = [];
 
 		(await membersQuery).docs.forEach((doc) => {
-			members.push(doc.data());
+			const {
+				firstName,
+				lastName,
+				userId: mId,
+				profilePic,
+				userType,
+			} = doc.data();
+			members.push({ firstName, lastName, userId: mId, profilePic, userType });
 		});
 
 		return {
@@ -95,25 +134,55 @@ export const getUserMessages = async (
 
 	const allMessages: object[] = await Promise.all(messagesArr);
 
-	const messages = allMessages.filter((msg: any) => {
-		const deletedBy = msg.deletedBy || {};
-		const archivedBy = msg.archivedBy || {};
-		if (deletedBy[userId] || archivedBy[userId]) {
-			return false;
-		}
-		return true;
-	});
-
-	const archived = allMessages.filter((msg: any) => {
-		const archivedBy = msg.archivedBy || {};
-		if (archivedBy[userId]) {
+	const messages = allMessages
+		.filter((msg: any) => {
+			const deletedBy = msg.deletedBy || {};
+			const archivedBy = msg.archivedBy || {};
+			if (deletedBy[userId] || archivedBy[userId]) {
+				return false;
+			}
 			return true;
-		}
-		return false;
-	});
+		})
+		.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
+
+	const archived = allMessages
+		.filter((msg: any) => {
+			const deletedBy = msg.deletedBy || {};
+			const archivedBy = msg.archivedBy || {};
+			if (archivedBy[userId] && !deletedBy[userId]) {
+				return true;
+			}
+			return false;
+		})
+		.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
 
 	return {
 		messages,
 		archived,
 	};
+};
+
+export const getConnectedPeople = async (
+	params: userMessagesParams
+): Promise<any> => {
+	const { userId } = params;
+	const userConnectedPeopleSnapshot = await userMetaCollection
+		.doc(userId)
+		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
+		.get();
+
+	const peoples = userConnectedPeopleSnapshot.docs.map((snap) => {
+		const snapData = snap.data();
+		const {
+			type,
+			firstName,
+			lastName,
+			profilePic,
+			userId: peopleId,
+			email,
+		} = snapData;
+		return { type, firstName, lastName, profilePic, userId: peopleId, email };
+	});
+
+	return peoples;
 };
