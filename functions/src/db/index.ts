@@ -56,13 +56,11 @@ export const getRoomCurrentSessionRef = (roomId: string) =>
 	getRoomMetaRef(roomId).child("currentSessionId");
 
 //CHAT REFS
-export const getChatsRef = (chatType: string) =>
-	realtimeDB.ref(`chats/${chatType}`);
-export const getChatRef = (chatType: string, chatId: string) =>
-	getChatsRef(chatType).child(chatId);
-export const getChatMetaRef = (chatType: string, chatId: string) =>
-	getChatRef(chatType, chatId).child("meta");
-export const getChatConversationRef = (chatType: string, chatId: string) =>
-	getChatRef(chatType, chatId).child("conversation");
-export const getChatMetaUpdatedAtRef = (chatType: string, chatId: string) =>
-	getChatMetaRef(chatType, chatId).child("updatedAt");
+export const getChatsRef = () => realtimeDB.ref(`chats`);
+export const getChatRef = (chatId: string) => getChatsRef().child(chatId);
+export const getChatMetaRef = (chatId: string) =>
+	getChatRef(chatId).child("meta");
+export const getChatConversationRef = (chatId: string) =>
+	getChatRef(chatId).child("conversation");
+export const getChatMetaUpdatedAtRef = (chatId: string) =>
+	getChatMetaRef(chatId).child("updatedAt");

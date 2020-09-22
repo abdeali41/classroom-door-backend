@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { chatTypes, notificationTypes } from "../libs/constants";
+import { notificationTypes } from "../libs/constants";
 import { capitalizeName } from "../libs/generics";
 import {
 	userCollection,
@@ -12,22 +12,18 @@ import {
 
 // FOR SENDING PUSH NOTIFICATIONS WHEN USER SENDS MESSAGE
 export const newMessageNotification = functions.database
-	.ref(`chats/{chatType}/{chatId}/conversation/{messageId}`)
+	.ref(`chats/{chatId}/conversation/{messageId}`)
 	.onCreate(async (snapshot, context) => {
 		const message = snapshot.val();
 		const chatId = context.params.chatId;
 		const messageId = context.params.messageId;
-		const chatType = context.params.chatType;
 		const senderId = message.senderId;
 
-		await getChatMetaUpdatedAtRef(chatType, chatId).set(
+		await getChatMetaUpdatedAtRef(chatId).set(
 			admin.database.ServerValue.TIMESTAMP
 		);
 
-		const roomMembersPath =
-			chatType === chatTypes.ROOM_CHATS
-				? `rooms/${chatId}/users`
-				: `chats/group-chats/${chatId}/meta/members`;
+		const roomMembersPath = `chats/${chatId}/meta/members`;
 
 		const roomMembers = await admin
 			.database()
@@ -39,13 +35,7 @@ export const newMessageNotification = functions.database
 		const senderSnapshot = await userCollection.doc(senderId).get();
 		const sender = senderSnapshot.data() || {};
 
-		if (chatType === chatTypes.ROOM_CHATS) {
-			roomMembers.forEach((snap) => {
-				roomMemberIds.push(snap.key);
-			});
-		} else {
-			roomMemberIds = roomMembers.val();
-		}
+		roomMemberIds = roomMembers.val();
 
 		const receiverIds = roomMemberIds.filter((rm) => rm !== senderId);
 
@@ -75,7 +65,7 @@ export const newMessageNotification = functions.database
 		}`;
 
 		const payload = {
-			data: { notificationType: "MESSAGE", messageId, chatId, chatType },
+			data: { notificationType: "MESSAGE", messageId, chatId },
 			notification: {
 				title,
 				body: message.text,

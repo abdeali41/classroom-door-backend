@@ -6,7 +6,7 @@ import {
 	getChatConversationRef,
 	userMetaCollection,
 } from "../db";
-import { chatTypes, userMetaSubCollectionKeys } from "../db/enum";
+import { userMetaSubCollectionKeys } from "../db/enum";
 
 const { database, firestore } = admin;
 
@@ -15,7 +15,7 @@ export const createChat = async (
 ): Promise<createChatReturnType> => {
 	const { userId, memberIds, groupName } = params;
 
-	const newChatRef = getChatsRef(chatTypes.GROUP_CHATS).push();
+	const newChatRef = getChatsRef().push();
 	const chatId: string = newChatRef.key || "";
 
 	const isGroup = memberIds.length > 1;
@@ -29,7 +29,7 @@ export const createChat = async (
 		groupName: groupName || "",
 	};
 
-	await getChatMetaRef(chatTypes.GROUP_CHATS, chatId).update(chatMeta);
+	await getChatMetaRef(chatId).update(chatMeta);
 	await userMetaCollection.doc(userId).update({
 		chats: firestore.FieldValue.arrayUnion(chatId),
 	});
@@ -84,10 +84,7 @@ export const getUserMessages = async (
 	console.log("chats", chats);
 
 	const messagesArr = chats.map(async (chatId: string) => {
-		const lastMessageRef = await getChatConversationRef(
-			chatTypes.GROUP_CHATS,
-			chatId
-		)
+		const lastMessageRef = await getChatConversationRef(chatId)
 			.orderByKey()
 			.limitToLast(1)
 			.once("value");
@@ -96,10 +93,7 @@ export const getUserMessages = async (
 			? Object.values(lastMessageRef.val())[0]
 			: {};
 
-		const chatMetaRef = await getChatMetaRef(
-			chatTypes.GROUP_CHATS,
-			chatId
-		).once("value");
+		const chatMetaRef = await getChatMetaRef(chatId).once("value");
 
 		const chatMeta = chatMetaRef.val() || [];
 
