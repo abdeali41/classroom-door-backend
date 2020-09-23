@@ -6,6 +6,8 @@ initializeApp({
 	databaseURL: "https://classroom-door.firebaseio.com",
 });
 
+require("dotenv").config();
+
 /** USER **/
 export * from "./users";
 
