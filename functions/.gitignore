@@ -6,3 +6,6 @@
 typings/
 
 node_modules/
+
+classroom-door-firebase-dev.json
+classroom-door-firebase-prod.json

@@ -8,7 +8,8 @@ import { creatStripeCustomer } from "../payments/methods";
 export const newUserCreationTrigger = functions.firestore
 	.document(`${firestoreCollectionKeys.USERS}/{userId}`)
 	.onCreate(async (snapshot, _) => {
-		const { email, firstName, lastName, phoneNumber }: any = snapshot;
+        console.log('New User Trigger Snapshot: ', snapshot.data())
+		const { email, firstName, lastName, phoneNumber }: any = snapshot.data();
 		const customer = await creatStripeCustomer({
 			email,
 			name: `${firstName}  ${lastName}`,
