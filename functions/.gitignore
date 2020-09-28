@@ -7,5 +7,6 @@ typings/
 
 node_modules/
 
+.env
 classroom-door-firebase-dev.json
 classroom-door-firebase-prod.json
