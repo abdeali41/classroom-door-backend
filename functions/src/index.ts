@@ -1,12 +1,8 @@
-import { initializeApp, credential } from "firebase-admin";
-const serviceAccount = require("../classroom-door-firebase-adminsdk-6perx-dbae20c4c1.json");
-
-initializeApp({
-	credential: credential.cert(serviceAccount),
-	databaseURL: "https://classroom-door.firebaseio.com",
-});
-
 require("dotenv").config();
+import { initializeApp } from "firebase-admin";
+
+initializeApp();
+
 
 /** USER **/
 export * from "./users";
