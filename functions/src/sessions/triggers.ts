@@ -3,13 +3,18 @@ import {
 	updateEpicboardSessionStatus,
 	updateEpicboardRoomStatus,
 	updateMinutesTutoringOfTutor,
+	updateSessionEndStatus,
 } from "./methods";
 import {
 	firestoreCollectionKeys,
 	realtimeDBNodes,
 	epicboardRoomSubCollectionKeys,
 } from "../db/enum";
-import { getRoomCurrentSessionRef, epicboardRoomCollection } from "../db";
+import {
+	getRoomCurrentSessionRef,
+	epicboardRoomCollection,
+	getRoomUsersRef,
+} from "../db";
 
 /** SESSIONS TRIGGERS **/
 
@@ -109,6 +114,10 @@ export const onUserEpicboardRoomJoinActivity = functions.database
 			);
 
 		await updateMinutesTutoringOfTutor(userId, status);
+
+		const roomUsersRef = await getRoomUsersRef(roomId).once("value");
+
+		await updateSessionEndStatus(sessionId, roomUsersRef.val());
 
 		return null;
 	});
