@@ -287,6 +287,10 @@ export const updateBookingRequest = async (
 		bookingRejectedOrCancelled = false,
 	} = params;
 
+	if (checkIfAnySlotsAreBackDated(updatedSlotRequests)) {
+		throw new Error("Booking date for one or more slots is in past");
+	}
+
 	const bookingRequestDocRef = bookingRequestCollection.doc(bookingId);
 	return firestoreDB.runTransaction((transaction) => {
 		return transaction
@@ -526,4 +530,14 @@ export const teacherPendingBookingRequestCount = async (
 		count: pendingRequestCount,
 		students: [],
 	};
+};
+
+const checkIfAnySlotsAreBackDated = (slots) => {
+	const checkDate = Object.values(slots).reduce((acc, curr: any) => {
+		const dateInPast = moment(curr.suggestedDateTime).isBefore(
+			moment().add(60, "minutes")
+		);
+		return dateInPast || acc;
+	}, false);
+	return checkDate;
 };
