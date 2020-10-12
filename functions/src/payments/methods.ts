@@ -11,7 +11,18 @@ import {
 	getLastRequestObject,
 	updateFailPaymentResponse,
 } from "../booking/methods";
-import { SESSION_TYPES, StripeStatus } from "../libs/constants";
+import {
+	SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
+	SESSION_TYPES,
+	StripeStatus,
+} from "../libs/constants";
+
+export const addServiceChargeOnAmount = (amount: number) => {
+	const serviceCharge: number =
+		(amount * SERVICE_CHARGE_PERCENTAGE_ON_BOOKING) / 100;
+
+	return amount + serviceCharge;
+};
 
 export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 	try {
@@ -47,7 +58,9 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				? teacherHourlyRate
 				: teacherGroupSessionRate;
 
-		const totalSessionCost = (rate / 60) * totalSessionLength;
+		const totalSessionCost = addServiceChargeOnAmount(
+			(rate / 60) * totalSessionLength
+		);
 
 		const studentSnap = await userCollection.doc(studentId).get();
 
