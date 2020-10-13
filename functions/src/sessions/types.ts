@@ -85,3 +85,8 @@ type joinEpicboardSessionReturnType = {
 	roomId?: string;
 	message: string;
 };
+
+type activityTimeType = {
+	online: number;
+	offline: number;
+};

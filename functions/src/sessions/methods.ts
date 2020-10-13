@@ -180,26 +180,26 @@ export const getAllSessions = async (
 };
 
 //Fetch all past sessions data
-export const getPastSessions = async (params: sessionsParams): Promise<sessionsReturnType> => {
+export const getPastSessions = async (
+	params: sessionsParams
+): Promise<sessionsReturnType> => {
 	const { userId } = params;
 
 	const userPastSessions = await userMetaCollection
 		.doc(userId)
 		.collection(userMetaSubCollectionKeys.EPICBOARD_SESSION)
-		.where("status","==", EPICBOARD_SESSION_STATUS_CODES.ENDED)
+		.where("status", "==", EPICBOARD_SESSION_STATUS_CODES.ENDED)
 		.get();
 
-	const allPastSessions = userPastSessions.docs.map(
-		async (pastSessionsDoc) => {
-			const pastSessionData = pastSessionsDoc.data();
-			return epicboardSessionCollection
-				.doc(pastSessionData.id)
-				.get()
-				.then((data) => ({id: pastSessionData.id, ...data.data() }));
-		}
-	);
+	const allPastSessions = userPastSessions.docs.map(async (pastSessionsDoc) => {
+		const pastSessionData = pastSessionsDoc.data();
+		return epicboardSessionCollection
+			.doc(pastSessionData.id)
+			.get()
+			.then((data) => ({ id: pastSessionData.id, ...data.data() }));
+	});
 	const sessions = await Promise.all(allPastSessions);
-	return { sessions };	
+	return { sessions };
 };
 
 // Fetch limit Booking sessions for arranged in ascending order of their starting time
@@ -279,8 +279,8 @@ export const getUserTutorCounselors = async (
 		.collection(userMetaSubCollectionKeys.CONNECTED_PEOPLE)
 		.where("type", "in", [
 			TeacherTypes.TUTORING,
-			TeacherTypes.COUNSELING,
-			TeacherTypes.TUTORING_AND_COUNSELING,
+			TeacherTypes.ADVISING,
+			TeacherTypes.TUTORING_AND_ADVISING,
 		])
 		.get();
 
@@ -297,12 +297,12 @@ export const getUserTutorCounselors = async (
 			...lastSession,
 		};
 
-		if (type === TeacherTypes.TUTORING_AND_COUNSELING) {
+		if (type === TeacherTypes.TUTORING_AND_ADVISING) {
 			tutors.push(session);
 			counselors.push(session);
 		} else if (type === TeacherTypes.TUTORING) {
 			tutors.push(session);
-		} else if (type === TeacherTypes.COUNSELING) {
+		} else if (type === TeacherTypes.ADVISING) {
 			counselors.push(session);
 		}
 	});
@@ -443,7 +443,10 @@ export const joinEpicboardSession = async (
 	return { roomId, message: "Epicboard Session created" };
 };
 
-export const updateMinutesTutoringOfTutor = async (userId, activityTime) => {
+export const updateMinutesTutoringOfTutor = async (
+	userId: string,
+	activityTime: activityTimeType
+): Promise<void> => {
 	const userSnap = await userCollection.doc(userId).get();
 	const userData: any = userSnap.data();
 	const { userType } = userData;
@@ -456,5 +459,40 @@ export const updateMinutesTutoringOfTutor = async (userId, activityTime) => {
 		await userMetaCollection.doc(userId).update({
 			minutesTutoring: firestore.FieldValue.increment(diffInMinutes),
 		});
+	}
+};
+
+export const updateSessionEndStatus = async (
+	sessionId: string,
+	roomUsers: object
+): Promise<void> => {
+	const allSignedOut = Object.values(roomUsers).reduce(
+		(parentAcc, parentCurr) => {
+			const devicesSignedOut = Object.values(parentCurr.devices).reduce(
+				(acc, curr: any) => {
+					return acc && curr.offline;
+				},
+				true
+			);
+			return parentAcc && devicesSignedOut;
+		},
+		true
+	);
+
+	if (allSignedOut) {
+		const sessionSnapShot = await epicboardSessionCollection
+			.doc(sessionId)
+			.get();
+		const session: any = sessionSnapShot.data();
+		const { sessionLength, startTime } = session;
+
+		const endTime = moment(startTime).add(sessionLength, "minutes");
+		if (!isBetweenInterval(startTime, endTime)) {
+			console.log("updateSessionEndStatusCompleted");
+
+			await epicboardSessionCollection
+				.doc(sessionId)
+				.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
+		}
 	}
 };
