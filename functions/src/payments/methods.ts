@@ -167,29 +167,26 @@ export const updatePaymentStatus = async (request: any) => {
 			message: err.message,
 		};
 	}
+	const eventObject = event.data.object;
+	const {
+		metadata,
+		payment_intent,
+		status,
+		amount,
+		amount_captured,
+		payment_method,
+		currency,
+		created,
+		description,
+		invoice,
+		receipt_email,
+		receipt_url,
+	} = eventObject;
 
 	// Handle the event
 	switch (event.type) {
 		case "charge.succeeded":
-			const eventObject = event.data.object;
-
-			const {
-				metadata,
-				payment_intent,
-				status,
-				amount,
-				amount_captured,
-				payment_method,
-				currency,
-				created,
-				description,
-				invoice,
-				receipt_email,
-				receipt_url,
-			} = eventObject;
-
 			await confirmBooking(metadata.bookingId);
-
 			await transactionCollection.add({
 				paymentIntentId: payment_intent,
 				status,
