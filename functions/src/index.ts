@@ -30,3 +30,6 @@ export * from "./reviews";
 
 /** PAYMENTS **/
 export * from "./payments";
+
+/** EPICBOARD **/
+export * from "./epicboard";

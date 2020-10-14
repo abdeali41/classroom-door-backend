@@ -36,3 +36,6 @@ export const capitalizeName = (firstName: String, lastName: String) => {
 
 // Generates Unique ID for the Collections or documents
 export const generateUniqueID = () => v4().replace(/-/g, "").substr(0, 20);
+
+export const btoa = (str: string) =>
+	new Buffer(str, "binary").toString("base64");
