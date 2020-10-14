@@ -6,6 +6,7 @@ import {
 	bookingRequestCollection,
 	teacherCollection,
 	userCollection,
+	mailCollection,
 } from "../db";
 import {
 	addModifiedTimeStamp,
@@ -16,6 +17,7 @@ import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { SESSION_TYPES, StripeStatus, UserTypes } from "../libs/constants";
 import { acceptAndPayForBooking } from "../payments/methods";
+import { sessionRequestedToTutor } from "../libs/email-template";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -106,6 +108,10 @@ export const createBookingRequest = async (
 
 	// adding to booking-request collection
 	await bookingRequestCollection.doc(bookingRequestId).set(bookingRequest);
+
+	await mailCollection.add(
+		sessionRequestedToTutor({ teacherId, teacherName, studentName })
+	);
 
 	return {
 		bookingRequest,

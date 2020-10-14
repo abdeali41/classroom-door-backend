@@ -39,6 +39,9 @@ export const subjectListCollection = firestoreDB.collection(
 export const transactionCollection = firestoreDB.collection(
 	firestoreCollectionKeys.TRANSACTIONS
 );
+export const mailCollection = firestoreDB.collection(
+	firestoreCollectionKeys.mail
+);
 
 // REALTIME DATABASE REFS
 
