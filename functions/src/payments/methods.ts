@@ -207,7 +207,7 @@ export const updatePaymentStatus = async (request: any) => {
 			});
 
 			break;
-		case "charge.failure":
+		case "charge.failed":
 			console.log("failed");
 			await updateFailPaymentResponse(metadata.bookingId);
 		// ... handle other event types
