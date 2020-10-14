@@ -21,3 +21,16 @@ export const testPayment = functions.https.onRequest((req: any, res: any) => {
 			});
 		});
 });
+
+// WEBHOOK FOR STRIPE PAYMENT
+export const stripeWebhook = functions.https.onRequest((req: any, res: any) => {
+	methods
+		.updatePaymentStatus(req)
+		.then((result) => {
+			res.json(result);
+		})
+		.catch((err) => {
+			console.log("err", err);
+			res.status(400).json(err);
+		});
+});

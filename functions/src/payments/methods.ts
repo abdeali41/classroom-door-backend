@@ -1,14 +1,17 @@
 import { firestore } from "firebase-admin";
-// import { updateBookingRequest } from "../booking/methods";
 import Stripe from "stripe";
 import {
 	userMetaCollection,
 	transactionCollection,
 	userCollection,
 } from "../db";
-import stripe from "../libs/Stripe";
-import { getLastRequestObject } from "../booking/methods";
-import { SESSION_TYPES } from "../libs/constants";
+import stripe, { getWebhookEvent } from "../libs/Stripe";
+import {
+	confirmBooking,
+	getLastRequestObject,
+	updateFailPaymentResponse,
+} from "../booking/methods";
+import { SESSION_TYPES, StripeStatus } from "../libs/constants";
 
 export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 	try {
@@ -22,6 +25,7 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 			studentId,
 			teacherName,
 			subjects,
+			id: bookingId,
 		} = params;
 
 		const { latestRequestMap } = getLastRequestObject(requestThread);
@@ -59,9 +63,10 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				subjects[0] || ""
 			} sessions with ${teacherName}`,
 			receipt_email: studentEmail,
+			metadata: { bookingId },
 		});
 
-		console.log("paymentIntent", paymentIntent);
+		console.log("paymentIntent", JSON.stringify(paymentIntent));
 
 		if (paymentIntent.status === "succeeded") {
 			const charges = paymentIntent.charges.data.map((ch) => ({
@@ -89,14 +94,20 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				payment_method: paymentIntent.payment_method,
 				receipt_email: paymentIntent.receipt_email,
 				charges,
+				bookingId,
 			});
-			return true;
+			return [StripeStatus.PAYMENT_SUCCESS];
+		} else if (paymentIntent.status === "requires_action") {
+			const { next_action }: any = paymentIntent;
+			const { use_stripe_sdk } = next_action;
+			console.log("use_stripe_sdk", use_stripe_sdk);
+			return [StripeStatus.REQUIRES_ACTION, use_stripe_sdk.stripe_js];
 		} else {
-			return false;
+			return [StripeStatus.PAYMENT_FAILURE];
 		}
 	} catch (err) {
 		console.log("error in payment", err);
-		return false;
+		return [StripeStatus.PAYMENT_FAILURE];
 	}
 };
 
@@ -141,4 +152,69 @@ export const addUserCard = async (params: any) => {
 
 export const retrieveCustomer = async (customerId) => {
 	return stripe.customers.retrieve(customerId);
+};
+
+export const updatePaymentStatus = async (request: any) => {
+	const sig = request.headers["stripe-signature"];
+
+	let event;
+
+	try {
+		event = getWebhookEvent(request.rawBody, sig);
+	} catch (err) {
+		throw {
+			name: "Webhook Error",
+			message: err.message,
+		};
+	}
+
+	// Handle the event
+	switch (event.type) {
+		case "charge.succeeded":
+			const eventObject = event.data.object;
+
+			const {
+				metadata,
+				payment_intent,
+				status,
+				amount,
+				amount_captured,
+				payment_method,
+				currency,
+				created,
+				description,
+				invoice,
+				receipt_email,
+				receipt_url,
+			} = eventObject;
+
+			await confirmBooking(metadata.bookingId);
+
+			await transactionCollection.add({
+				paymentIntentId: payment_intent,
+				status,
+				amount,
+				amount_captured,
+				currency,
+				created,
+				description,
+				invoice,
+				payment_method,
+				receipt_email,
+				receipt_url,
+				charges: eventObject,
+				bookingId: metadata.bookingId,
+			});
+
+			break;
+		case "charge.failure":
+			console.log("failed");
+			await updateFailPaymentResponse(metadata.bookingId);
+		// ... handle other event types
+		default:
+			console.log(`Unhandled event type ${event.type}`);
+	}
+
+	// Return a response to acknowledge receipt of the event
+	return { received: true };
 };
