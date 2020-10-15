@@ -4,6 +4,8 @@ import {
 	userMetaCollection,
 	transactionCollection,
 	userCollection,
+	mailCollection,
+	bookingRequestCollection,
 } from "../db";
 import stripe, { getWebhookEvent } from "../libs/Stripe";
 import {
@@ -16,6 +18,7 @@ import {
 	SESSION_TYPES,
 	StripeStatus,
 } from "../libs/constants";
+import { paymentFailed, paymentProcessed } from "../libs/email-template";
 
 export const addServiceChargeOnAmount = (amount: number) => {
 	const serviceCharge: number =
@@ -37,6 +40,7 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 			teacherName,
 			subjects,
 			id: bookingId,
+			studentName,
 		} = params;
 
 		const { latestRequestMap } = getLastRequestObject(requestThread);
@@ -109,13 +113,26 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				charges,
 				bookingId,
 			});
+			await mailCollection.add(
+				paymentProcessed({
+					userId: studentId,
+					userName: studentName,
+					receiptUrl: charges[0].receipt_url,
+				})
+			);
 			return [StripeStatus.PAYMENT_SUCCESS];
 		} else if (paymentIntent.status === "requires_action") {
 			const { next_action }: any = paymentIntent;
 			const { use_stripe_sdk } = next_action;
-			console.log("use_stripe_sdk", use_stripe_sdk);
 			return [StripeStatus.REQUIRES_ACTION, use_stripe_sdk.stripe_js];
 		} else {
+			await mailCollection.add(
+				paymentFailed({
+					userId: studentId,
+					userName: studentName,
+					amount: totalSessionCost,
+				})
+			);
 			return [StripeStatus.PAYMENT_FAILURE];
 		}
 	} catch (err) {
@@ -196,6 +213,11 @@ export const updatePaymentStatus = async (request: any) => {
 		receipt_url,
 	} = eventObject;
 
+	const bookingSnap = await bookingRequestCollection
+		.doc(metadata.bookingId)
+		.get();
+	const booking: any = bookingSnap.data();
+
 	// Handle the event
 	switch (event.type) {
 		case "charge.succeeded":
@@ -215,11 +237,25 @@ export const updatePaymentStatus = async (request: any) => {
 				charges: eventObject,
 				bookingId: metadata.bookingId,
 			});
+			await mailCollection.add(
+				paymentProcessed({
+					userId: booking.studentId,
+					userName: booking.studentName,
+					receiptUrl: receipt_url,
+				})
+			);
 
 			break;
 		case "charge.failed":
 			console.log("failed");
 			await updateFailPaymentResponse(metadata.bookingId);
+			await mailCollection.add(
+				paymentFailed({
+					userId: booking.studentId,
+					userName: booking.studentName,
+					amount,
+				})
+			);
 		// ... handle other event types
 		default:
 			console.log(`Unhandled event type ${event.type}`);

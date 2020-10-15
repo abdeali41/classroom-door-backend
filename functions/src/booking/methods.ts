@@ -17,7 +17,18 @@ import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { SESSION_TYPES, StripeStatus, UserTypes } from "../libs/constants";
 import { acceptAndPayForBooking } from "../payments/methods";
-import { sessionRequestedToTutor } from "../libs/email-template";
+import {
+	bookingSuggestionStudent,
+	bookingSuggestionTutor,
+	sessionBookedStudent,
+	sessionBookedTutor,
+	sessionCancelledByStudentStudent,
+	sessionCancelledByStudentTutor,
+	sessionCancelledByTutorStudent,
+	sessionCancelledByTutorTutor,
+	sessionRequestedToTutor,
+} from "../libs/email-template";
+import { formatDate, DateFormats } from "../libs/date-utils";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -308,7 +319,14 @@ export const updateBookingRequest = async (
 				const bookingRequestData:
 					| any
 					| bookingRequestType = bookingRequestDoc.data();
-				const { studentId, teacherId, status } = bookingRequestData;
+				const {
+					studentId,
+					teacherId,
+					status,
+					teacherName,
+					studentName,
+					subjects,
+				} = bookingRequestData;
 				let newBookingRequestData: bookingRequestType = bookingRequestData;
 
 				// Status checks ----------
@@ -339,6 +357,37 @@ export const updateBookingRequest = async (
 						userId === studentId
 					);
 					transaction.update(bookingRequestDocRef, newBookingRequestData);
+					const mailParams = {
+						teacherName,
+						studentName,
+					};
+					if (userId === studentId) {
+						await mailCollection.add(
+							sessionCancelledByStudentStudent({
+								userId: studentId,
+								...mailParams,
+							})
+						); // Send cancellation mail  to student
+						await mailCollection.add(
+							sessionCancelledByStudentTutor({
+								userId: teacherId,
+								...mailParams,
+							})
+						); // Send cancellation mail to teacher
+					} else {
+						await mailCollection.add(
+							sessionCancelledByTutorStudent({
+								userId: studentId,
+								...mailParams,
+							})
+						); // Send rejection mail to student
+						await mailCollection.add(
+							sessionCancelledByTutorTutor({
+								userId: teacherId,
+								...mailParams,
+							})
+						); // Send rejection mail to teacher
+					}
 				} else if (userId === teacherId) {
 					// teacher tying to update
 					newBookingRequestData = getData_RequestChangesByTeacher(
@@ -347,6 +396,13 @@ export const updateBookingRequest = async (
 						teacherComment
 					);
 					transaction.update(bookingRequestDocRef, newBookingRequestData);
+					await mailCollection.add(
+						bookingSuggestionStudent({
+							userId: studentId,
+							studentName,
+							teacherName,
+						})
+					);
 				} else if (userId === studentId) {
 					// student trying to update
 					// check if its approved
@@ -358,6 +414,13 @@ export const updateBookingRequest = async (
 							studentComment
 						);
 						transaction.update(bookingRequestDocRef, newBookingRequestData);
+						await mailCollection.add(
+							bookingSuggestionTutor({
+								userId: teacherId,
+								studentName,
+								teacherName,
+							})
+						);
 						return;
 					}
 					// Student Approved Request
@@ -374,6 +437,25 @@ export const updateBookingRequest = async (
 						);
 						if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
 							transaction.update(bookingRequestDocRef, newBookingRequestData);
+
+							const sessionString = getConfirmedSessionString(
+								newBookingRequestData.requestThread
+							);
+							const subjectString = subjects.join(",");
+
+							const mailParams = {
+								teacherName,
+								studentName,
+								subjects: subjectString,
+								sessions: sessionString,
+							};
+
+							await mailCollection.add(
+								sessionBookedStudent({ userId: studentId, ...mailParams })
+							); // confirmation mail to student
+							await mailCollection.add(
+								sessionBookedTutor({ userId: teacherId, ...mailParams })
+							); // confirmation mail to teacher
 							return newBookingRequestData;
 						} else if (stripeStatus === StripeStatus.REQUIRES_ACTION) {
 							const requireActionResponse = {
@@ -566,4 +648,25 @@ export const updateFailPaymentResponse = (bookingId: string) => {
 	return bookingRequestCollection.doc(bookingId).update({
 		status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_FAILED,
 	});
+};
+
+const getConfirmedSessionString = (requestThread) => {
+	const { latestRequestMap } = getLastRequestObject(requestThread);
+	const allRequestSlots = latestRequestMap.slots;
+	const sessionString = Object.keys(latestRequestMap.slots)
+		.filter(
+			(slotKey) =>
+				!allRequestSlots[slotKey].deleted &&
+				!allRequestSlots[slotKey].studentAccepted
+		)
+		.reduce(
+			(str, approvedSlotKey) =>
+				`${str}${formatDate(
+					allRequestSlots[approvedSlotKey].suggestedDateTime,
+					DateFormats.SEMILONG_DATE
+				)},`,
+			""
+		);
+
+	return sessionString;
 };
