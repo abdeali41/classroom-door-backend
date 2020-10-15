@@ -37,7 +37,7 @@ export const updateBookingRequestStatus = async (
 		...extraData,
 	});
 
-	[studentId, teacherId].map((userId) => {
+	[studentId, teacherId].forEach((userId) => {
 		batchWrite.set(
 			userMetaCollection
 				.doc(userId)

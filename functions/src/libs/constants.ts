@@ -115,3 +115,9 @@ export const StripeStatus = {
 	PAYMENT_FAILURE: "PAYMENT_FAILURE",
 	REQUIRES_ACTION: "REQUIRES_ACTION",
 };
+
+// Service charge for student
+export const SERVICE_CHARGE_PERCENTAGE_ON_BOOKING = 8;
+
+// Commission on booking
+export const TCD_COMMISSION_PERCENTAGE_ON_BOOKING = 25;

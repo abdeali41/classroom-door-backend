@@ -117,7 +117,6 @@ export const createEpicboardSession = async (
 				startTime: allRequestSlots[approvedSlotKey].suggestedDateTime,
 				sessionLength: allRequestSlots[approvedSlotKey].sessionLength,
 			});
-			console.log("Creating Session: ", sessionObj);
 			epicboardSessionBatchWrite.set(
 				epicboardSessionCollection.doc(epicboardSessionId),
 				sessionObj
@@ -253,7 +252,7 @@ export const updateEpicboardSessionStatus = async (
 		...extraData,
 	});
 
-	[studentId, teacherId].map((userId) => {
+	[studentId, teacherId].forEach((userId) => {
 		batchWrite.set(
 			userMetaCollection
 				.doc(userId)
@@ -355,7 +354,7 @@ export const updateEpicboardRoomStatus = async (
 	});
 
 	// Updating for all members
-	memberIdList.map((memberId) => {
+	memberIdList.forEach((memberId) => {
 		batchWrite.set(
 			userMetaCollection
 				.doc(memberId)
