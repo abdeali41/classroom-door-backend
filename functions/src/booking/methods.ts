@@ -14,7 +14,7 @@ import {
 } from "../libs/generics";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { SESSION_TYPES, UserTypes } from "../libs/constants";
+import { SESSION_TYPES, StripeStatus, UserTypes } from "../libs/constants";
 import { acceptAndPayForBooking } from "../payments/methods";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
@@ -140,8 +140,6 @@ export const getAllBookingsForUser = async (
 	);
 
 	const bookings = await Promise.all(allBookingData);
-
-	console.log("bookings", bookings);
 
 	return { bookings };
 };
@@ -365,10 +363,20 @@ export const updateBookingRequest = async (
 						studentComment
 					);
 					if (allChangesApprovedByStudent) {
-						const paid = await acceptAndPayForBooking(newBookingRequestData);
-						if (paid) {
+						const [stripeStatus, action_url] = await acceptAndPayForBooking(
+							newBookingRequestData
+						);
+						if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
 							transaction.update(bookingRequestDocRef, newBookingRequestData);
 							return newBookingRequestData;
+						} else if (stripeStatus === StripeStatus.REQUIRES_ACTION) {
+							const requireActionResponse = {
+								...newBookingRequestData,
+								status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING,
+								stripeActionUrl: action_url,
+							};
+							transaction.update(bookingRequestDocRef, requireActionResponse);
+							return requireActionResponse;
 						} else {
 							throw {
 								name: "PaymentError",
@@ -540,4 +548,16 @@ const checkIfAnySlotsAreBackDated = (slots) => {
 		return dateInPast || acc;
 	}, false);
 	return checkDate;
+};
+
+export const confirmBooking = (bookingId: string) => {
+	return bookingRequestCollection.doc(bookingId).update({
+		status: BOOKING_REQUEST_STATUS_CODES.CONFIRMED,
+	});
+};
+
+export const updateFailPaymentResponse = (bookingId: string) => {
+	return bookingRequestCollection.doc(bookingId).update({
+		status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_FAILED,
+	});
 };
