@@ -124,3 +124,9 @@ export const TCD_COMMISSION_PERCENTAGE_ON_BOOKING = 25;
 export const CLASSROOMDOOR_WEB_URL =
 	process.env.CLASSROOMDOOR_WEB_PROD_URL ||
 	process.env.CLASSROOMDOOR_WEB_DEV_URL;
+
+export const TeacherPayoutStatus = {
+	INITIATED: "INITIATED",
+	PAID: "PAID",
+	FAILED: "FAILED",
+};

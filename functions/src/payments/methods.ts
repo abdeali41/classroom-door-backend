@@ -5,7 +5,6 @@ import {
 	transactionCollection,
 	userCollection,
 	mailCollection,
-	bookingRequestCollection,
 } from "../db";
 import stripe, { getWebhookEvent } from "../libs/Stripe";
 import {
@@ -17,6 +16,7 @@ import {
 	SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
 	SESSION_TYPES,
 	StripeStatus,
+	TeacherPayoutStatus,
 } from "../libs/constants";
 import { paymentFailed, paymentProcessed } from "../libs/email-template";
 
@@ -41,6 +41,9 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 			subjects,
 			id: bookingId,
 			studentName,
+			teacherId,
+			sessionString,
+			subjectString,
 		} = params;
 
 		const { latestRequestMap } = getLastRequestObject(requestThread);
@@ -80,59 +83,26 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				subjects[0] || ""
 			} sessions with ${teacherName}`,
 			receipt_email: studentEmail,
-			metadata: { bookingId },
+			metadata: {
+				bookingId,
+				studentId,
+				teacherId,
+				teacherName,
+				studentName,
+				sessionString,
+				subjectString,
+			},
 		});
 
 		console.log("paymentIntent", JSON.stringify(paymentIntent));
 
 		if (paymentIntent.status === "succeeded") {
-			const charges = paymentIntent.charges.data.map((ch) => ({
-				id: ch.id,
-				receipt_url: ch.receipt_url,
-				receipt_email: ch.receipt_email,
-				receipt_number: ch.receipt_number,
-				paid: ch.paid,
-				balance_transaction: ch.balance_transaction,
-				shipping: ch.shipping,
-				billing_details: ch.billing_details,
-				captured: ch.captured,
-				created: ch.created,
-				customer: ch.customer,
-			}));
-
-			await transactionCollection.add({
-				paymentIntentId: paymentIntent.id,
-				status: paymentIntent.status,
-				amount: paymentIntent.amount,
-				currency: paymentIntent.currency,
-				created: paymentIntent.created,
-				description: paymentIntent.description,
-				invoice: paymentIntent.invoice,
-				payment_method: paymentIntent.payment_method,
-				receipt_email: paymentIntent.receipt_email,
-				charges,
-				bookingId,
-			});
-			await mailCollection.add(
-				paymentProcessed({
-					userId: studentId,
-					userName: studentName,
-					receiptUrl: charges[0].receipt_url,
-				})
-			);
 			return [StripeStatus.PAYMENT_SUCCESS];
 		} else if (paymentIntent.status === "requires_action") {
 			const { next_action }: any = paymentIntent;
 			const { use_stripe_sdk } = next_action;
 			return [StripeStatus.REQUIRES_ACTION, use_stripe_sdk.stripe_js];
 		} else {
-			await mailCollection.add(
-				paymentFailed({
-					userId: studentId,
-					userName: studentName,
-					amount: totalSessionCost,
-				})
-			);
 			return [StripeStatus.PAYMENT_FAILURE];
 		}
 	} catch (err) {
@@ -213,15 +183,10 @@ export const updatePaymentStatus = async (request: any) => {
 		receipt_url,
 	} = eventObject;
 
-	const bookingSnap = await bookingRequestCollection
-		.doc(metadata.bookingId)
-		.get();
-	const booking: any = bookingSnap.data();
-
 	// Handle the event
 	switch (event.type) {
 		case "charge.succeeded":
-			await confirmBooking(metadata.bookingId);
+			await confirmBooking(metadata);
 			await transactionCollection.add({
 				paymentIntentId: payment_intent,
 				status,
@@ -236,23 +201,23 @@ export const updatePaymentStatus = async (request: any) => {
 				receipt_url,
 				charges: eventObject,
 				bookingId: metadata.bookingId,
+				teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
 			});
 			await mailCollection.add(
 				paymentProcessed({
-					userId: booking.studentId,
-					userName: booking.studentName,
+					userId: metadata.studentId,
+					userName: metadata.studentName,
 					receiptUrl: receipt_url,
 				})
 			);
 
 			break;
 		case "charge.failed":
-			console.log("failed");
 			await updateFailPaymentResponse(metadata.bookingId);
 			await mailCollection.add(
 				paymentFailed({
-					userId: booking.studentId,
-					userName: booking.studentName,
+					userId: metadata.studentId,
+					userName: metadata.studentName,
 					amount,
 				})
 			);

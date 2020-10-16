@@ -302,7 +302,10 @@ export const updateBookingRequest = async (
 		bookingRejectedOrCancelled = false,
 	} = params;
 
-	if (checkIfAnySlotsAreBackDated(updatedSlotRequests)) {
+	if (
+		checkIfAnySlotsAreBackDated(updatedSlotRequests) &&
+		!bookingRejectedOrCancelled
+	) {
 		throw new Error("Booking date for one or more slots is in past");
 	}
 
@@ -432,30 +435,17 @@ export const updateBookingRequest = async (
 						studentComment
 					);
 					if (allChangesApprovedByStudent) {
-						const [stripeStatus, action_url] = await acceptAndPayForBooking(
-							newBookingRequestData
+						const sessionString = getConfirmedSessionString(
+							newBookingRequestData.requestThread
 						);
+						const subjectString = subjects.join(",");
+						const [stripeStatus, action_url] = await acceptAndPayForBooking({
+							...newBookingRequestData,
+							sessionString,
+							subjectString,
+						});
 						if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
 							transaction.update(bookingRequestDocRef, newBookingRequestData);
-
-							const sessionString = getConfirmedSessionString(
-								newBookingRequestData.requestThread
-							);
-							const subjectString = subjects.join(",");
-
-							const mailParams = {
-								teacherName,
-								studentName,
-								subjects: subjectString,
-								sessions: sessionString,
-							};
-
-							await mailCollection.add(
-								sessionBookedStudent({ userId: studentId, ...mailParams })
-							); // confirmation mail to student
-							await mailCollection.add(
-								sessionBookedTutor({ userId: teacherId, ...mailParams })
-							); // confirmation mail to teacher
 							return newBookingRequestData;
 						} else if (stripeStatus === StripeStatus.REQUIRES_ACTION) {
 							const requireActionResponse = {
@@ -638,10 +628,36 @@ const checkIfAnySlotsAreBackDated = (slots) => {
 	return checkDate;
 };
 
-export const confirmBooking = (bookingId: string) => {
-	return bookingRequestCollection.doc(bookingId).update({
+export const confirmBooking = async (params: any) => {
+	const {
+		bookingId,
+		studentId,
+		teacherId,
+		teacherName,
+		studentName,
+		sessionString,
+		subjectString,
+	} = params;
+
+	const bookingUpdated = await bookingRequestCollection.doc(bookingId).update({
 		status: BOOKING_REQUEST_STATUS_CODES.CONFIRMED,
 	});
+
+	const mailParams = {
+		teacherName,
+		studentName,
+		subjects: subjectString,
+		sessions: sessionString,
+	};
+
+	const mailToStudent = await mailCollection.add(
+		sessionBookedStudent({ userId: studentId, ...mailParams })
+	); // confirmation mail to student
+	const mailToTutor = await mailCollection.add(
+		sessionBookedTutor({ userId: teacherId, ...mailParams })
+	); // confirmation mail to teacher
+
+	return Promise.resolve([bookingUpdated, mailToStudent, mailToTutor]);
 };
 
 export const updateFailPaymentResponse = (bookingId: string) => {
