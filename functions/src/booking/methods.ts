@@ -139,11 +139,12 @@ export const getAllBookingsForUser = async (
 	const userBookingsSnapshot = await userMetaCollection
 		.doc(userId)
 		.collection(userMetaSubCollectionKeys.BOOKING_REQUEST)
-		.where(
-			"status",
-			"<=",
-			BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_STUDENT_CONFIRMATION
-		)
+		.where("status", "in", [
+			BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_STUDENT_CONFIRMATION,
+			BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION,
+			BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING,
+			BOOKING_REQUEST_STATUS_CODES.PAYMENT_FAILED,
+		])
 		.get();
 
 	const allBookingData = userBookingsSnapshot.docs.map(
