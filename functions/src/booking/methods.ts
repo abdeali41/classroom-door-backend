@@ -307,7 +307,9 @@ export const updateBookingRequest = async (
 		checkIfAnySlotsAreBackDated(updatedSlotRequests) &&
 		!bookingRejectedOrCancelled
 	) {
-		throw new Error("Booking date for one or more slots is in past");
+		throw new Error(
+			"Unable to Create approved session: Session times should have at-least 1 hour buffer"
+		);
 	}
 
 	const bookingRequestDocRef = bookingRequestCollection.doc(bookingId);
