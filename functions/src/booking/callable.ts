@@ -41,6 +41,7 @@ export const booking = functions.https.onCall(
 					result = {
 						successType: successTypes.SHOW_MESSAGE,
 						message: e.message,
+						error: true,
 					};
 				}
 				break;
