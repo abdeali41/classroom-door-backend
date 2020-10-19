@@ -45,6 +45,14 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 
 			await updateConnectedPeople(bookingRequestAfterData, approvedSessions);
 		}
-		// add session
-		await updateBookingRequestStatus(bookingRequestId, bookingRequestAfterData);
+
+		if (
+			bookingRequestBeforeData.status !== BOOKING_REQUEST_STATUS_CODES.CONFIRMED
+		) {
+			// add session
+			await updateBookingRequestStatus(
+				bookingRequestId,
+				bookingRequestAfterData
+			);
+		}
 	});
