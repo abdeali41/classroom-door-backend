@@ -442,11 +442,12 @@ export const updateBookingRequest = async (
 							newBookingRequestData.requestThread
 						);
 						const subjectString = subjects.join(",");
-						const [stripeStatus, action_url] = await acceptAndPayForBooking({
+						const [stripeStatus, client_secret] = await acceptAndPayForBooking({
 							...newBookingRequestData,
 							sessionString,
 							subjectString,
 						});
+
 						if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
 							transaction.update(bookingRequestDocRef, newBookingRequestData);
 							return newBookingRequestData;
@@ -454,7 +455,7 @@ export const updateBookingRequest = async (
 							const requireActionResponse = {
 								...newBookingRequestData,
 								status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING,
-								stripeActionUrl: action_url,
+								stripeClientSecret: client_secret,
 							};
 							transaction.update(bookingRequestDocRef, requireActionResponse);
 							return requireActionResponse;
