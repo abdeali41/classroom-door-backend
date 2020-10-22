@@ -99,9 +99,14 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 		if (paymentIntent.status === "succeeded") {
 			return [StripeStatus.PAYMENT_SUCCESS];
 		} else if (paymentIntent.status === "requires_action") {
-			const { next_action }: any = paymentIntent;
-			const { use_stripe_sdk } = next_action;
-			return [StripeStatus.REQUIRES_ACTION, use_stripe_sdk.stripe_js];
+			const { next_action, client_secret }: any = paymentIntent;
+			const { type } = next_action;
+
+			if (type === "use_stripe_sdk") {
+				return [StripeStatus.REQUIRES_ACTION, client_secret];
+			} else {
+				return [StripeStatus.PAYMENT_FAILURE];
+			}
 		} else {
 			return [StripeStatus.PAYMENT_FAILURE];
 		}
