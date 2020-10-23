@@ -6,7 +6,7 @@ import * as methods from "./methods";
 // TO TEST STRIPE QUERIES WITHOUT CALLABLE
 export const testPayment = functions.https.onRequest((req: any, res: any) => {
 	methods
-		.creatStripeCustomer(req.body)
+		.attachBankAccountToCustomer(req.body)
 		.then((customer) => {
 			res.json({
 				success: true,

@@ -234,3 +234,27 @@ export const updatePaymentStatus = async (request: any) => {
 	// Return a response to acknowledge receipt of the event
 	return { received: true };
 };
+
+export const attachBankAccountToCustomer = async (params: any) => {
+	const { userId, bankToken, country, email } = params;
+	try {
+		const account = await stripe.accounts.create({
+			type: "custom",
+			capabilities: {
+				card_payments: { requested: true },
+				transfers: { requested: true },
+			},
+			country: country,
+			email: email,
+			external_account: bankToken,
+			default_currency: "US",
+		});
+
+		await userMetaCollection
+			.doc(userId)
+			.update({ stripePayoutAccount: account });
+		return { message: "Account details updated", account };
+	} catch (err) {
+		return { message: err };
+	}
+};
