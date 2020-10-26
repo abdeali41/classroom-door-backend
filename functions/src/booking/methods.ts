@@ -305,7 +305,7 @@ export const updateBookingRequest = async (
 
 	if (
 		checkIfAnySlotsAreBackDated(updatedSlotRequests) &&
-		!bookingRejectedOrCancelled
+		allChangesApprovedByStudent
 	) {
 		throw new Error(
 			"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
