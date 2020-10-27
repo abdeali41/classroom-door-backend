@@ -13,9 +13,11 @@ import {
 	updateFailPaymentResponse,
 } from "../booking/methods";
 import {
+	CLASSROOMDOOR_WEB_URL,
 	SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
 	SESSION_TYPES,
 	StripeStatus,
+	TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
 	TeacherPayoutStatus,
 } from "../libs/constants";
 import { paymentFailed, paymentProcessed } from "../libs/email-template";
@@ -25,6 +27,12 @@ export const addServiceChargeOnAmount = (amount: number) => {
 		(amount * SERVICE_CHARGE_PERCENTAGE_ON_BOOKING) / 100;
 
 	return amount + serviceCharge;
+};
+
+export const removeTCDCommissionOnAmount = (amount: number) => {
+	const commission: number =
+		(amount * TCD_COMMISSION_PERCENTAGE_ON_BOOKING) / 100;
+	return amount - commission;
 };
 
 export const acceptAndPayForBooking = async (params: any): Promise<any> => {
@@ -65,9 +73,11 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				? teacherHourlyRate
 				: teacherGroupSessionRate;
 
-		const totalSessionCost = addServiceChargeOnAmount(
-			(rate / 60) * totalSessionLength
-		);
+		const totalAmount = (rate / 60) * totalSessionLength;
+
+		const totalSessionCost = addServiceChargeOnAmount(totalAmount);
+
+		const teacherPayoutAmount = removeTCDCommissionOnAmount(totalAmount);
 
 		const studentSnap = await userCollection.doc(studentId).get();
 
@@ -91,6 +101,9 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				studentName,
 				sessionString,
 				subjectString,
+				totalAmount,
+				totalSessionCost,
+				teacherPayoutAmount,
 			},
 		});
 
@@ -207,6 +220,7 @@ export const updatePaymentStatus = async (request: any) => {
 				charges: eventObject,
 				bookingId: metadata.bookingId,
 				teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
+				metadata,
 			});
 			await mailCollection.add(
 				paymentProcessed({
@@ -236,25 +250,102 @@ export const updatePaymentStatus = async (request: any) => {
 };
 
 export const attachBankAccountToCustomer = async (params: any) => {
-	const { userId, bankToken, country, email } = params;
+	const {
+		userId,
+		bankToken,
+		countryCode,
+		email,
+		currency,
+		accountId,
+		accountHolderType,
+		ip,
+		address,
+		dateOfBirth,
+		ssnLastFour,
+		phone,
+		firstName,
+		lastName,
+		gender,
+	} = params;
 	try {
-		const account = await stripe.accounts.create({
-			type: "custom",
-			capabilities: {
-				card_payments: { requested: true },
-				transfers: { requested: true },
-			},
-			country: country,
-			email: email,
-			external_account: bankToken,
-			default_currency: "US",
-		});
+		let account;
 
-		await userMetaCollection
-			.doc(userId)
-			.update({ stripePayoutAccount: account });
-		return { message: "Account details updated", account };
+		console.log("accountId", accountId);
+
+		if (accountId) {
+			account = await stripe.accounts.update(accountId, {
+				external_account: bankToken,
+				business_type: accountHolderType,
+			});
+		} else {
+			const dob = dateOfBirth.split("-");
+			account = await stripe.accounts.create({
+				type: "custom",
+				capabilities: {
+					card_payments: { requested: true },
+					transfers: { requested: true },
+				},
+				country: countryCode,
+				email: email,
+				external_account: bankToken,
+				default_currency: currency,
+				business_type: accountHolderType,
+				tos_acceptance: {
+					date: Math.floor(Date.now() / 1000),
+					ip,
+				},
+				individual: {
+					address: {
+						city: address.city,
+						country: address.country,
+						line1: address.line1,
+						line2: address.lin2,
+						postal_code: address.postalCode,
+						state: address.state,
+					},
+					dob: {
+						day: dob[2],
+						month: dob[1],
+						year: dob[0],
+					},
+					email,
+					ssn_last_4: ssnLastFour,
+					phone,
+					first_name: firstName,
+					last_name: lastName,
+					gender,
+				},
+				business_profile: {
+					url: CLASSROOMDOOR_WEB_URL,
+					support_url: CLASSROOMDOOR_WEB_URL,
+				},
+			});
+		}
+
+		const stripePayoutAccount = {
+			accountId: account.id,
+			bankAccount: account.external_accounts?.data[0],
+			accountType: account.type,
+			capabilities: account.capabilities,
+		};
+
+		await userMetaCollection.doc(userId).update({ stripePayoutAccount });
+		return { stripePayoutAccount };
 	} catch (err) {
+		console.log("err", JSON.stringify(err));
 		return { message: err };
 	}
+};
+
+export const payoutToTutor = async (params: any) => {
+	const { amount, accountId, bookingId } = params;
+
+	const transfer = await stripe.transfers.create({
+		amount: amount * 100,
+		currency: "usd",
+		destination: accountId,
+		transfer_group: bookingId,
+	});
+
+	return transfer;
 };

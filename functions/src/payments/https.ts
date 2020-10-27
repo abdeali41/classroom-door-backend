@@ -6,19 +6,13 @@ import * as methods from "./methods";
 // TO TEST STRIPE QUERIES WITHOUT CALLABLE
 export const testPayment = functions.https.onRequest((req: any, res: any) => {
 	methods
-		.attachBankAccountToCustomer(req.body)
-		.then((customer) => {
-			res.json({
-				success: true,
-				customer,
-			});
+		.payoutToTutor(req.body)
+		.then((result) => {
+			res.json(result);
 		})
 		.catch((err) => {
 			console.log("err", err);
-			res.json({
-				success: false,
-				error: err,
-			});
+			res.json(err);
 		});
 });
 

@@ -25,7 +25,11 @@ export const payments = functions.https.onCall(
 				result = await methods.addUserCard({ userId, ...data });
 				break;
 			case actionTypes.ATTACH_BANK_TO_TUTOR:
-				result = await methods.attachBankAccountToCustomer({ userId, ...data });
+				result = await methods.attachBankAccountToCustomer({
+					userId,
+					ip: context.rawRequest.ip,
+					...data,
+				});
 				break;
 			default:
 				result = null;
