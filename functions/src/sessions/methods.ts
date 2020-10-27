@@ -312,7 +312,7 @@ export const getUserTutorCounselors = async (
 	};
 };
 
-/////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 
 const createRoom = async (roomId: string, roomInfo: RoomInfo) => {
 	const roomMeta = {
@@ -438,8 +438,9 @@ export const joinEpicboardSession = async (
 	} else {
 		await getRoomCurrentSessionRef(roomId).set(sessionId);
 	}
+	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data()
 
-	return { roomId, message: "Epicboard Session created" };
+	return { roomId, message: "Epicboard Session created", teacherId, sessionId, tutorUserDetails };
 };
 
 export const updateMinutesTutoringOfTutor = async (
