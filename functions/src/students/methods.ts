@@ -2,7 +2,7 @@ import { studentCollection, userCollection, firestoreDB } from "../db";
 
 export const getAllStudents = async (): Promise<any> => {
 	const usersQuery = await userCollection
-		.where("userType", "==", "Student")
+		.where("userType", "==", "STUDENT")
 		.get();
 
 	const userIds: Array<string> = [];

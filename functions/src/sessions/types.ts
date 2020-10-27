@@ -84,6 +84,9 @@ type RoomInfo = {
 type joinEpicboardSessionReturnType = {
 	roomId?: string;
 	message: string;
+	teacherId?:string;
+	sessionId?:string;
+	tutorUserDetails?: any
 };
 
 type activityTimeType = {
