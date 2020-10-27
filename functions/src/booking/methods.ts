@@ -308,7 +308,7 @@ export const updateBookingRequest = async (
 		!bookingRejectedOrCancelled
 	) {
 		throw new Error(
-			"Unable to Create approved session: Session times should have at-least 1 hour buffer"
+			"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
 		);
 	}
 
@@ -625,7 +625,7 @@ export const teacherPendingBookingRequestCount = async (
 const checkIfAnySlotsAreBackDated = (slots) => {
 	const checkDate = Object.values(slots).reduce((acc, curr: any) => {
 		const dateInPast = moment(curr.suggestedDateTime).isBefore(
-			moment().add(60, "minutes")
+			moment().add(30, "minutes")
 		);
 		return dateInPast || acc;
 	}, false);
