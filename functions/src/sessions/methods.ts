@@ -583,6 +583,7 @@ export const changeCompletedSessionStatus = async () => {
 				await epicboardSessionCollection
 					.doc(id)
 					.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
+				await getSessionStatusRef().child(id).remove();
 				return true;
 			} else {
 				return false;
