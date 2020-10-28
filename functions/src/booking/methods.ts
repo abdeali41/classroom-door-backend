@@ -14,8 +14,16 @@ import {
 	addCreationTimeStamp,
 } from "../libs/generics";
 import { userMetaSubCollectionKeys } from "../db/enum";
-import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { SESSION_TYPES, StripeStatus, UserTypes } from "../libs/constants";
+import {
+	BOOKING_REQUEST_STATUS_CODES,
+	EPICBOARD_SESSION_STATUS_CODES,
+} from "../libs/status-codes";
+import {
+	SESSION_TYPES,
+	StripeStatus,
+	TeacherPayoutStatus,
+	UserTypes,
+} from "../libs/constants";
 import { acceptAndPayForBooking } from "../payments/methods";
 import {
 	bookingSuggestionStudent,
@@ -641,10 +649,23 @@ export const confirmBooking = async (params: any) => {
 		studentName,
 		sessionString,
 		subjectString,
+		totalAmount,
+		totalSessionCost,
+		teacherPayoutAmount,
+		totalSessionLength,
+		serviceChargePercentage,
+		tcdCommissionPercentage,
 	} = params;
 
 	const bookingUpdated = await bookingRequestCollection.doc(bookingId).update({
 		status: BOOKING_REQUEST_STATUS_CODES.CONFIRMED,
+		totalSessionLength,
+		totalAmount,
+		totalSessionCost,
+		teacherPayoutAmount,
+		serviceChargePercentage,
+		tcdCommissionPercentage,
+		teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
 	});
 
 	const mailParams = {
@@ -689,4 +710,23 @@ const getConfirmedSessionString = (requestThread) => {
 		);
 
 	return sessionString;
+};
+
+export const addSessionsKeyOnBookingCollection = async (
+	bookingId: string,
+	sessions: Array<any>
+) => {
+	const fieldValue = sessions.reduce(
+		(acc, sess) => ({
+			...acc,
+			[sess.sessionId]: {
+				status: EPICBOARD_SESSION_STATUS_CODES.CREATED,
+			},
+		}),
+		{}
+	);
+
+	await bookingRequestCollection.doc(bookingId).update({
+		sessions: fieldValue,
+	});
 };

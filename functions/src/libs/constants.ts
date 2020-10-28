@@ -127,6 +127,7 @@ export const CLASSROOMDOOR_WEB_URL =
 
 export const TeacherPayoutStatus = {
 	INITIATED: "INITIATED",
+	PROCESSING: "PROCESSING",
 	PAID: "PAID",
 	FAILED: "FAILED",
 };

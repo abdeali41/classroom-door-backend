@@ -116,7 +116,11 @@ export const createEpicboardSession = async (
 				bookingRequestSlotId: approvedSlotKey,
 				bookingRequestThreadObjectId: latestRequestKey,
 				startTime: allRequestSlots[approvedSlotKey].suggestedDateTime,
+				endTime: moment(allRequestSlots[approvedSlotKey].suggestedDateTime)
+					.add(allRequestSlots[approvedSlotKey].sessionLength, "minutes")
+					.utc(),
 				sessionLength: allRequestSlots[approvedSlotKey].sessionLength,
+				attendance: [],
 			});
 			epicboardSessionBatchWrite.set(
 				epicboardSessionCollection.doc(epicboardSessionId),
@@ -439,9 +443,15 @@ export const joinEpicboardSession = async (
 	} else {
 		await getRoomCurrentSessionRef(roomId).set(sessionId);
 	}
-	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data()
+	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data();
 
-	return { roomId, message: "Epicboard Session created", teacherId, sessionId, tutorUserDetails };
+	return {
+		roomId,
+		message: "Epicboard Session created",
+		teacherId,
+		sessionId,
+		tutorUserDetails,
+	};
 };
 
 export const updateMinutesTutoringOfTutor = async (

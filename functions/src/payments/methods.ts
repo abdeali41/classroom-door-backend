@@ -101,9 +101,12 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 				studentName,
 				sessionString,
 				subjectString,
+				totalSessionLength,
 				totalAmount,
 				totalSessionCost,
 				teacherPayoutAmount,
+				serviceChargePercentage: SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
+				tcdCommissionPercentage: TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
 			},
 		});
 

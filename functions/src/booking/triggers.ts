@@ -2,7 +2,11 @@ import * as functions from "firebase-functions";
 import { firestoreCollectionKeys } from "../db/enum";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { createEpicboardSession } from "../sessions/methods";
-import { updateBookingRequestStatus, updateConnectedPeople } from "./methods";
+import {
+	addSessionsKeyOnBookingCollection,
+	updateBookingRequestStatus,
+	updateConnectedPeople,
+} from "./methods";
 
 /** BOOKING TRIGGERS **/
 
@@ -42,6 +46,11 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 			);
 			// create session data for booking request Updated
 			// list of session ids
+
+			await addSessionsKeyOnBookingCollection(
+				bookingRequestId,
+				approvedSessions
+			);
 
 			await updateConnectedPeople(bookingRequestAfterData, approvedSessions);
 		}
