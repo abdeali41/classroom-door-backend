@@ -70,7 +70,7 @@ type epicboardRoomObjectType = {
 } & createdAndModifiedTimeStampTypes;
 
 type JoinEpicboardSessionRequestType = {
-	// userId?: string;
+	userId?: string;
 	sessionId: string;
 };
 
@@ -84,9 +84,9 @@ type RoomInfo = {
 type joinEpicboardSessionReturnType = {
 	roomId?: string;
 	message: string;
-	teacherId?:string;
-	sessionId?:string;
-	tutorUserDetails?: any
+	teacherId?: string;
+	sessionId?: string;
+	tutorUserDetails?: any;
 };
 
 type activityTimeType = {

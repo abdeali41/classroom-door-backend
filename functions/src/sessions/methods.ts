@@ -377,7 +377,7 @@ export const updateEpicboardRoomStatus = async (
 export const joinEpicboardSession = async (
 	params: JoinEpicboardSessionRequestType
 ): Promise<joinEpicboardSessionReturnType> => {
-	const { sessionId } = params;
+	const { sessionId, userId } = params;
 	const epicboardSessionSnapshot = await epicboardSessionCollection
 		.doc(sessionId)
 		.get();
@@ -392,6 +392,8 @@ export const joinEpicboardSession = async (
 		subjects,
 		studentId,
 		sessionType,
+		attendance = [],
+		bookingId,
 	}: any = epicboardSession;
 
 	const endTime = moment(startTime).add(sessionLength, "minutes");
@@ -443,6 +445,21 @@ export const joinEpicboardSession = async (
 	} else {
 		await getRoomCurrentSessionRef(roomId).set(sessionId);
 	}
+
+	if (!attendance.includes(userId)) {
+		await epicboardSessionCollection.doc(sessionId).update({
+			attendance: firestore.FieldValue.arrayUnion(userId),
+		});
+
+		await getSessionStatusRef().child(sessionId).set({
+			id: sessionId,
+			bookingId,
+			startTime,
+			sessionLength,
+			endTime: endTime.utc(),
+		});
+	}
+
 	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data();
 
 	return {
