@@ -19,6 +19,7 @@ import {
 	getRoomUserRef,
 	getRoomRef,
 	userCollection,
+	getSessionStatusRef,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { isBetweenInterval } from "../libs/date-utils";
@@ -495,4 +496,40 @@ export const updateSessionEndStatus = async (
 				.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
 		}
 	}
+};
+
+export const updatePendingSessionStatus = async () => {
+	const sessionSnapshot = await epicboardSessionCollection
+		.where("status", "==", EPICBOARD_ROOM_STATUS_CODES.CREATED)
+		.limit(100)
+		.get();
+
+	console.log("sessionSnapshot.size", sessionSnapshot.size);
+
+	const sessions: Array<object> = [];
+
+	sessionSnapshot.forEach((session) => {
+		const { startTime, sessionLength, status } = session.data();
+
+		const endTime = moment(startTime).add(sessionLength, "minutes").utc();
+
+		if (moment(endTime).isBefore(moment())) {
+			sessions.push({
+				id: session.id,
+				sessionLength,
+				startTime,
+				endTime,
+				status,
+				payoutStatus: null,
+			});
+		}
+	});
+
+	console.log("sessions.length", sessions.length);
+
+	const sessionRefs = sessions.map((sess: any) => {
+		return getSessionStatusRef().child(sess.id).set(sess);
+	});
+
+	return Promise.all(sessionRefs);
 };

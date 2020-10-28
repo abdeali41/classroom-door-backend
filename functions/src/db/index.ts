@@ -67,3 +67,7 @@ export const getChatConversationRef = (chatId: string) =>
 	getChatRef(chatId).child("conversation");
 export const getChatMetaUpdatedAtRef = (chatId: string) =>
 	getChatMetaRef(chatId).child("updatedAt");
+
+// SESSION STATUS
+export const getSessionStatusRef = () =>
+	realtimeDB.ref(realtimeDBNodes.SESSION_STATUS);

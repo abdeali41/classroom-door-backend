@@ -20,6 +20,7 @@ export enum firestoreCollectionKeys {
 
 export enum realtimeDBNodes {
 	EPICBOARD_ROOMS = "epicboard-rooms",
+	SESSION_STATUS = "session-status",
 }
 
 export enum userMetaSubCollectionKeys {

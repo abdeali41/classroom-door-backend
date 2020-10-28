@@ -22,20 +22,18 @@ export const getEpicboardSessions = functions.https.onRequest(
 	}
 );
 
-export const getPastSession = functions.https.onRequest(
-	async (req, res) => {
-		const { userId } = req.body;
+export const getPastSession = functions.https.onRequest(async (req, res) => {
+	const { userId } = req.body;
 
-		methods
-			.getPastSessions({ userId })
-			.then(({ sessions })=> {
-				SendResponse(res).success("Past sessions found", sessions);
-			})
-			.catch((err)=> {
-				SendResponse(res).success("Past Sessions Not Found", err)
-			})
-	}
-);
+	methods
+		.getPastSessions({ userId })
+		.then(({ sessions }) => {
+			SendResponse(res).success("Past sessions found", sessions);
+		})
+		.catch((err) => {
+			SendResponse(res).success("Past Sessions Not Found", err);
+		});
+});
 
 // FETCH UPCOMING EPICBOARD SESSIONS LIMITED
 export const getUpcomingEpicboardSessions = functions.https.onRequest(
@@ -88,6 +86,20 @@ export const joinEpicboardSession = functions.https.onRequest(
 			.catch((err) => {
 				console.log("err", err);
 				SendResponse(res).failed(err);
+			});
+	}
+);
+
+// SESSION STATUS CHECK FOR OLD SESSIONS CREATED
+export const sessionStatusCheck = functions.https.onRequest(
+	async (req, res) => {
+		methods
+			.updatePendingSessionStatus()
+			.then((result) => {
+				res.json(result);
+			})
+			.catch((err) => {
+				res.json(err);
 			});
 	}
 );

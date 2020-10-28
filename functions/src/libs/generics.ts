@@ -39,3 +39,13 @@ export const generateUniqueID = () => v4().replace(/-/g, "").substr(0, 20);
 
 export const btoa = (str: string) =>
 	new Buffer(str, "binary").toString("base64");
+
+export const getRefPathRelativeToRoot = (ref: any) => {
+	let path = ref.key;
+	let startRef = ref.parent;
+	while (startRef && startRef.key !== ref.root.key) {
+		path = `${startRef.key}/${path}`;
+		startRef = startRef.parent;
+	}
+	return path;
+};
