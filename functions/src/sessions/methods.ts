@@ -560,3 +560,33 @@ export const updatePendingSessionStatus = async () => {
 
 	return Promise.all(sessionRefs);
 };
+
+export const changeCompletedSessionStatus = async () => {
+	const sessionsSnap = await getSessionStatusRef().once("value");
+	const sessions = sessionsSnap.val();
+
+	await Promise.all(
+		Object.values(sessions).map(async (session: any) => {
+			const { id, startTime, sessionLength, endTime } = session;
+
+			let sessionCompleted = false;
+
+			if (endTime) {
+				sessionCompleted = moment(endTime).isBefore(moment());
+			} else {
+				sessionCompleted = moment(
+					moment(startTime).add(sessionLength, "minutes").utc()
+				).isBefore(moment());
+			}
+
+			if (sessionCompleted) {
+				await epicboardSessionCollection
+					.doc(id)
+					.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
+				return true;
+			} else {
+				return false;
+			}
+		})
+	);
+};
