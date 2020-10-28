@@ -7,6 +7,7 @@ import {
 	teacherCollection,
 	userCollection,
 	mailCollection,
+	pendingTransfersRef,
 } from "../db";
 import {
 	addModifiedTimeStamp,
@@ -729,4 +730,23 @@ export const addSessionsKeyOnBookingCollection = async (
 	await bookingRequestCollection.doc(bookingId).update({
 		sessions: fieldValue,
 	});
+};
+
+export const isAllSessionsAreCompleted = (sessions: any) => {
+	return Object.values(sessions).reduce((acc, sess: any) => {
+		const completed = sess.status === EPICBOARD_SESSION_STATUS_CODES.ENDED;
+		return acc && completed;
+	}, true);
+};
+
+export const addTutorTransferRequestForBooking = async (booking) => {
+	const { sessions, teacherPayoutAmount, teacherId } = booking;
+
+	if (isAllSessionsAreCompleted(sessions)) {
+		await pendingTransfersRef().child(booking.id).set({
+			id: booking.id,
+			teacherPayoutAmount,
+			teacherId,
+		});
+	}
 };

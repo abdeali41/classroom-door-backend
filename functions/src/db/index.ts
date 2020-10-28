@@ -71,3 +71,7 @@ export const getChatMetaUpdatedAtRef = (chatId: string) =>
 // SESSION STATUS
 export const getSessionStatusRef = () =>
 	realtimeDB.ref(realtimeDBNodes.SESSION_STATUS);
+
+// PENDING TRANSFERS
+export const pendingTransfersRef = () =>
+	realtimeDB.ref(realtimeDBNodes.PENDING_TRANSFERS);

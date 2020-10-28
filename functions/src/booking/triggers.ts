@@ -1,9 +1,11 @@
 import * as functions from "firebase-functions";
 import { firestoreCollectionKeys } from "../db/enum";
+import { TeacherPayoutStatus } from "../libs/constants";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { createEpicboardSession } from "../sessions/methods";
 import {
 	addSessionsKeyOnBookingCollection,
+	addTutorTransferRequestForBooking,
 	updateBookingRequestStatus,
 	updateConnectedPeople,
 } from "./methods";
@@ -63,5 +65,19 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 				bookingRequestId,
 				bookingRequestAfterData
 			);
+		}
+
+		const {
+			teacherPayoutStatus = TeacherPayoutStatus.INITIATED,
+		} = bookingRequestAfterData;
+
+		if (
+			bookingRequestAfterData.status ===
+				BOOKING_REQUEST_STATUS_CODES.CONFIRMED &&
+			teacherPayoutStatus !== TeacherPayoutStatus.PROCESSING &&
+			teacherPayoutStatus !== TeacherPayoutStatus.PAID
+		) {
+			// add tutor transfer request
+			await addTutorTransferRequestForBooking(bookingRequestAfterData);
 		}
 	});

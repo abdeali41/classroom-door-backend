@@ -13,7 +13,8 @@ import {
 import {
 	getRoomCurrentSessionRef,
 	epicboardRoomCollection,
-	getRoomUsersRef,, bookingRequestCollection
+	getRoomUsersRef,
+	bookingRequestCollection,
 } from "../db";
 
 /** SESSIONS TRIGGERS **/
@@ -50,8 +51,8 @@ export const onUpdateEpicboardSessionTrigger = functions.firestore
 		);
 
 		await bookingRequestCollection.doc(epicboardSessionData.bookingId).update({
-			[`sessions.${epicboardSessionId}.status`]:epicboardSessionData.status
-		})
+			[`sessions.${epicboardSessionId}.status`]: epicboardSessionData.status,
+		});
 
 		// When Approved the session details need to be added to the collection.
 		// Trigger new Session object from here when approved.
