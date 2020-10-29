@@ -25,7 +25,7 @@ import {
 	TeacherPayoutStatus,
 	UserTypes,
 } from "../libs/constants";
-import { acceptAndPayForBooking } from "../payments/methods";
+import { acceptAndPayForBooking, payoutToTutor } from "../payments/methods";
 import {
 	bookingSuggestionStudent,
 	bookingSuggestionTutor,
@@ -749,4 +749,36 @@ export const addTutorTransferRequestForBooking = async (booking) => {
 			teacherId,
 		});
 	}
+};
+
+export const payTutorBookingAmount = async () => {
+	const pendingTransfersSnap = await pendingTransfersRef().once("value");
+	const pendingTransfers = Object.values(pendingTransfersSnap.val());
+
+	await Promise.all(
+		pendingTransfers.map(async (booking: any) => {
+			const { id, teacherPayoutAmount, teacherId } = booking;
+
+			const teacherSnap: any = await userMetaCollection.doc(teacherId).get();
+
+			const { stripePayoutAccount = {} } = teacherSnap.data();
+
+			if (stripePayoutAccount.accountId) {
+				try {
+					await payoutToTutor({
+						amount: teacherPayoutAmount,
+						accountId: stripePayoutAccount.accountId,
+						bookingId: id,
+					});
+				} catch (err) {
+					await pendingTransfersRef().child(id).update({ error: err });
+					return false;
+				}
+
+				return true;
+			} else {
+				return false;
+			}
+		})
+	);
 };
