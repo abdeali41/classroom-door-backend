@@ -10,6 +10,7 @@ import stripe, { getWebhookEvent } from "../libs/Stripe";
 import {
 	confirmBooking,
 	getLastRequestObject,
+	updateBookingPayoutStatus,
 	updateFailPaymentResponse,
 } from "../booking/methods";
 import {
@@ -243,6 +244,19 @@ export const updatePaymentStatus = async (request: any) => {
 					amount,
 				})
 			);
+			break;
+		case "transfer.paid":
+			await updateBookingPayoutStatus(eventObject.transfer_group, {
+				teacherPayoutStatus: TeacherPayoutStatus.PAID,
+				stripeTransferObject: eventObject,
+			});
+			break;
+		case "transfer.failed":
+			await updateBookingPayoutStatus(eventObject.transfer_group, {
+				teacherPayoutStatus: TeacherPayoutStatus.FAILED,
+				stripeTransferObject: eventObject,
+			});
+			break;
 		// ... handle other event types
 		default:
 			console.log(`Unhandled event type ${event.type}`);
@@ -275,53 +289,55 @@ export const attachBankAccountToCustomer = async (params: any) => {
 
 		console.log("accountId", accountId);
 
+		const dob = dateOfBirth.split("-");
+
+		const accountParams = {
+			country: countryCode,
+			external_account: bankToken,
+			default_currency: currency,
+			business_type: accountHolderType,
+			individual: {
+				address: {
+					city: address.city,
+					country: address.country,
+					line1: address.line1,
+					line2: address.lin2,
+					postal_code: address.postalCode,
+					state: address.state,
+				},
+				dob: {
+					day: dob[2],
+					month: dob[1],
+					year: dob[0],
+				},
+				email,
+				ssn_last_4: ssnLastFour,
+				phone,
+				first_name: firstName,
+				last_name: lastName,
+				gender,
+			},
+		};
+
 		if (accountId) {
-			account = await stripe.accounts.update(accountId, {
-				external_account: bankToken,
-				business_type: accountHolderType,
-			});
+			account = await stripe.accounts.update(accountId, accountParams);
 		} else {
-			const dob = dateOfBirth.split("-");
 			account = await stripe.accounts.create({
 				type: "custom",
 				capabilities: {
 					card_payments: { requested: true },
 					transfers: { requested: true },
 				},
-				country: countryCode,
 				email: email,
-				external_account: bankToken,
-				default_currency: currency,
-				business_type: accountHolderType,
 				tos_acceptance: {
 					date: Math.floor(Date.now() / 1000),
 					ip,
-				},
-				individual: {
-					address: {
-						city: address.city,
-						country: address.country,
-						line1: address.line1,
-						line2: address.lin2,
-						postal_code: address.postalCode,
-						state: address.state,
-					},
-					dob: {
-						day: dob[2],
-						month: dob[1],
-						year: dob[0],
-					},
-					email,
-					ssn_last_4: ssnLastFour,
-					phone,
-					first_name: firstName,
-					last_name: lastName,
-					gender,
 				},
 				business_profile: {
 					url: CLASSROOMDOOR_WEB_URL,
 					support_url: CLASSROOMDOOR_WEB_URL,
 				},
+				...accountParams,
 			});
 		}
 

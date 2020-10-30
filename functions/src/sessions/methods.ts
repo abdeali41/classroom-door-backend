@@ -118,7 +118,8 @@ export const createEpicboardSession = async (
 				startTime: allRequestSlots[approvedSlotKey].suggestedDateTime,
 				endTime: moment(allRequestSlots[approvedSlotKey].suggestedDateTime)
 					.add(allRequestSlots[approvedSlotKey].sessionLength, "minutes")
-					.utc(),
+					.utc()
+					.toISOString(),
 				sessionLength: allRequestSlots[approvedSlotKey].sessionLength,
 				attendance: [],
 			});
@@ -456,7 +457,7 @@ export const joinEpicboardSession = async (
 			bookingId,
 			startTime,
 			sessionLength,
-			endTime: endTime.utc(),
+			endTime: endTime.utc().toISOString(),
 		});
 	}
 
@@ -538,7 +539,10 @@ export const updatePendingSessionStatus = async () => {
 	sessionSnapshot.forEach((session) => {
 		const { startTime, sessionLength, status } = session.data();
 
-		const endTime = moment(startTime).add(sessionLength, "minutes").utc();
+		const endTime = moment(startTime)
+			.add(sessionLength, "minutes")
+			.utc()
+			.toISOString();
 
 		if (moment(endTime).isBefore(moment())) {
 			sessions.push({
@@ -565,29 +569,36 @@ export const changeCompletedSessionStatus = async () => {
 	const sessionsSnap = await getSessionStatusRef().once("value");
 	const sessions = sessionsSnap.val();
 
-	await Promise.all(
-		Object.values(sessions).map(async (session: any) => {
-			const { id, startTime, sessionLength, endTime } = session;
+	console.log("changeCompletedSessionStatus-sessions", sessions);
 
-			let sessionCompleted = false;
+	if (sessions) {
+		const done = await Promise.all(
+			Object.values(sessions).map(async (session: any) => {
+				const { id, startTime, sessionLength, endTime } = session;
 
-			if (endTime) {
-				sessionCompleted = moment(endTime).isBefore(moment());
-			} else {
-				sessionCompleted = moment(
-					moment(startTime).add(sessionLength, "minutes").utc()
-				).isBefore(moment());
-			}
+				let sessionCompleted = false;
 
-			if (sessionCompleted) {
-				await epicboardSessionCollection
-					.doc(id)
-					.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
-				await getSessionStatusRef().child(id).remove();
-				return true;
-			} else {
-				return false;
-			}
-		})
-	);
+				if (endTime) {
+					sessionCompleted = moment(endTime).isBefore(moment());
+				} else {
+					sessionCompleted = moment(
+						moment(startTime).add(sessionLength, "minutes").utc().toISOString()
+					).isBefore(moment());
+				}
+
+				if (sessionCompleted) {
+					await epicboardSessionCollection
+						.doc(id)
+						.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
+					await getSessionStatusRef().child(id).remove();
+					return true;
+				} else {
+					return false;
+				}
+			})
+		);
+		return done;
+	}
+
+	return true;
 };

@@ -1,4 +1,5 @@
 import * as functions from "firebase-functions";
+import { payTutorBookingAmount } from "./methods";
 
 // This functions requires billing to be enabled
 
@@ -6,6 +7,7 @@ import * as functions from "firebase-functions";
 export const checkPendingTransfers = functions
 	.runWith({ memory: "2GB" })
 	.pubsub.schedule("*/5 * * * *")
-	.onRun((context) => {
-		console.log("checkPendingTransfers", context);
+	.onRun(async (context) => {
+		console.log("checkPendingTransfers");
+		await payTutorBookingAmount();
 	});

@@ -733,10 +733,13 @@ export const addSessionsKeyOnBookingCollection = async (
 };
 
 export const isAllSessionsAreCompleted = (sessions: any) => {
+	if (sessions) {
 	return Object.values(sessions).reduce((acc, sess: any) => {
 		const completed = sess.status === EPICBOARD_SESSION_STATUS_CODES.ENDED;
 		return acc && completed;
 	}, true);
+	}
+	return false;
 };
 
 export const addTutorTransferRequestForBooking = async (booking) => {
@@ -753,11 +756,21 @@ export const addTutorTransferRequestForBooking = async (booking) => {
 
 export const payTutorBookingAmount = async () => {
 	const pendingTransfersSnap = await pendingTransfersRef().once("value");
-	const pendingTransfers = Object.values(pendingTransfersSnap.val());
+	const pendingTransfers = pendingTransfersSnap.val();
 
-	await Promise.all(
-		pendingTransfers.map(async (booking: any) => {
-			const { id, teacherPayoutAmount, teacherId } = booking;
+	if (pendingTransfers) {
+		const done = await Promise.all(
+			Object.values(pendingTransfers).map(async (booking: any) => {
+				const {
+					id,
+					teacherPayoutAmount,
+					teacherId,
+					status = TeacherPayoutStatus.INITIATED,
+				} = booking;
+
+				if (status === TeacherPayoutStatus.PROCESSING) {
+					return true;
+				}
 
 			const teacherSnap: any = await userMetaCollection.doc(teacherId).get();
 
@@ -765,13 +778,28 @@ export const payTutorBookingAmount = async () => {
 
 			if (stripePayoutAccount.accountId) {
 				try {
-					await payoutToTutor({
+						const transfer = await payoutToTutor({
 						amount: teacherPayoutAmount,
 						accountId: stripePayoutAccount.accountId,
 						bookingId: id,
 					});
+
+						if (transfer.id) {
+							await bookingRequestCollection.doc(id).update({
+								teacherPayoutStatus: TeacherPayoutStatus.PROCESSING,
+								stripeTransferObject: transfer,
+							});
+							await pendingTransfersRef()
+								.child(id)
+								.update({ status: TeacherPayoutStatus.PROCESSING });
+						}
 				} catch (err) {
-					await pendingTransfersRef().child(id).update({ error: err });
+						await pendingTransfersRef()
+							.child(id)
+							.update({ error: err, status: TeacherPayoutStatus.FAILED });
+						await bookingRequestCollection
+							.doc(id)
+							.update({ teacherPayoutStatus: TeacherPayoutStatus.FAILED });
 					return false;
 				}
 
@@ -781,4 +809,23 @@ export const payTutorBookingAmount = async () => {
 			}
 		})
 	);
+
+		return done;
+	}
+	return true;
+};
+
+export const updateBookingPayoutStatus = async (
+	bookingId: string,
+	params: any
+) => {
+	await bookingRequestCollection.doc(bookingId).update(params);
+
+	if (params.teacherPayoutStatus === TeacherPayoutStatus.PAID) {
+		await pendingTransfersRef().child(bookingId).remove();
+	} else {
+		await pendingTransfersRef()
+			.child(bookingId)
+			.update({ status: params.teacherPayoutStatus });
+	}
 };
