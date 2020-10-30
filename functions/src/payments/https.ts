@@ -28,3 +28,18 @@ export const stripeWebhook = functions.https.onRequest((req: any, res: any) => {
 			res.status(400).json(err);
 		});
 });
+
+// WEBHOOK FOR STRIPE CONNECTED ACCOUNT
+export const stripeConnectedAccWebhook = functions.https.onRequest(
+	(req: any, res: any) => {
+		methods
+			.connectedAccountStatus(req)
+			.then((result) => {
+				res.json(result);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				res.status(400).json(err);
+			});
+	}
+);

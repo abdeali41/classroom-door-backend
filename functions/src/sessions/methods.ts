@@ -569,8 +569,6 @@ export const changeCompletedSessionStatus = async () => {
 	const sessionsSnap = await getSessionStatusRef().once("value");
 	const sessions = sessionsSnap.val();
 
-	console.log("changeCompletedSessionStatus-sessions", sessions);
-
 	if (sessions) {
 		const done = await Promise.all(
 			Object.values(sessions).map(async (session: any) => {

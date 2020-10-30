@@ -317,6 +317,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 				last_name: lastName,
 				gender,
 			},
+			metadata: { userId },
 		};
 
 		if (accountId) {
@@ -346,9 +347,9 @@ export const attachBankAccountToCustomer = async (params: any) => {
 			bankAccount: account.external_accounts?.data[0],
 			accountType: account.type,
 			capabilities: account.capabilities,
+			individual: account.individual,
+			payouts: account.payouts,
 		};
-
-		await userMetaCollection.doc(userId).update({ stripePayoutAccount });
 		return { stripePayoutAccount };
 	} catch (err) {
 		console.log("err", JSON.stringify(err));
@@ -367,4 +368,52 @@ export const payoutToTutor = async (params: any) => {
 	});
 
 	return transfer;
+};
+
+const updateAccountDetails = async (account) => {
+	const stripePayoutAccount = {
+		accountId: account.id,
+		bankAccount: account.external_accounts?.data[0],
+		accountType: account.type,
+		capabilities: account.capabilities,
+		individual: account.individual,
+		payouts: account.payouts,
+	};
+
+	await userMetaCollection
+		.doc(account.metadata.userId)
+		.update({ stripePayoutAccount });
+};
+
+export const connectedAccountStatus = async (request: any) => {
+	const sig = request.headers["stripe-signature"];
+
+	let event;
+
+	try {
+		event = getWebhookEvent(request.rawBody, sig);
+	} catch (err) {
+		throw {
+			name: "Webhook Error",
+			message: err.message,
+		};
+	}
+	const eventObject = event.data.object;
+
+	// Handle the event
+	switch (event.type) {
+		case "account.updated":
+			await updateAccountDetails(eventObject);
+			break;
+		case "account.application.authorized":
+			break;
+		case "account.application.deauthorized":
+			break;
+		// ... handle other event types
+		default:
+			console.log(`Unhandled event type ${event.type}`);
+	}
+
+	// Return a response to acknowledge receipt of the event
+	return { updated: true };
 };
