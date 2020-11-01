@@ -529,7 +529,7 @@ export const updateSessionEndStatus = async (
 export const updatePendingSessionStatus = async () => {
 	const sessionSnapshot = await epicboardSessionCollection
 		.where("status", "==", EPICBOARD_ROOM_STATUS_CODES.CREATED)
-		.limit(100)
+		.limit(10)
 		.get();
 
 	console.log("sessionSnapshot.size", sessionSnapshot.size);
@@ -551,18 +551,20 @@ export const updatePendingSessionStatus = async () => {
 				startTime,
 				endTime,
 				status,
-				payoutStatus: null,
 			});
 		}
 	});
 
 	console.log("sessions.length", sessions.length);
 
-	const sessionRefs = sessions.map((sess: any) => {
-		return getSessionStatusRef().child(sess.id).set(sess);
-	});
+	await Promise.all(
+		sessions.map(async (sess: any) => {
+			await getSessionStatusRef().child(sess.id).set(sess);
+			return true;
+		})
+	);
 
-	return Promise.all(sessionRefs);
+	return true;
 };
 
 export const changeCompletedSessionStatus = async () => {

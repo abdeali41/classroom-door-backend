@@ -13,7 +13,7 @@ export const deleteRTDEpicboardRoom = functions
 
 export const sessionCompletionStatusCheck = functions
 	.runWith({ memory: "2GB" })
-	.pubsub.schedule("*/5 * * * *")
+	.pubsub.schedule("0 * * * *")
 	.onRun(async (context) => {
 		console.log("sessionCompletionStatusCheck");
 		await changeCompletedSessionStatus();

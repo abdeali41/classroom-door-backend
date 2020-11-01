@@ -68,14 +68,15 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 		}
 
 		const {
-			teacherPayoutStatus = TeacherPayoutStatus.INITIATED,
+			teacherPayoutStatus = TeacherPayoutStatus.REQUESTED,
 		} = bookingRequestAfterData;
 
 		if (
 			bookingRequestAfterData.status ===
 				BOOKING_REQUEST_STATUS_CODES.CONFIRMED &&
 			teacherPayoutStatus !== TeacherPayoutStatus.PROCESSING &&
-			teacherPayoutStatus !== TeacherPayoutStatus.PAID
+			teacherPayoutStatus !== TeacherPayoutStatus.PAID &&
+			teacherPayoutStatus !== TeacherPayoutStatus.INITIATED
 		) {
 			// add tutor transfer request
 			await addTutorTransferRequestForBooking(bookingRequestAfterData);

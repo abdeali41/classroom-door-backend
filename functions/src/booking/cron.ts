@@ -6,7 +6,7 @@ import { payTutorBookingAmount } from "./methods";
 // CHECK FOR PENDING AMOUNT TRANSFER TO TUTOR
 export const checkPendingTransfers = functions
 	.runWith({ memory: "2GB" })
-	.pubsub.schedule("*/5 * * * *")
+	.pubsub.schedule("0 * * * *")
 	.onRun(async (context) => {
 		console.log("checkPendingTransfers");
 		await payTutorBookingAmount();

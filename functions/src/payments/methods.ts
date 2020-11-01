@@ -33,7 +33,7 @@ export const addServiceChargeOnAmount = (amount: number) => {
 export const removeTCDCommissionOnAmount = (amount: number) => {
 	const commission: number =
 		(amount * TCD_COMMISSION_PERCENTAGE_ON_BOOKING) / 100;
-	return amount - commission;
+	return (amount - commission).toFixed(2);
 };
 
 export const acceptAndPayForBooking = async (params: any): Promise<any> => {
@@ -223,7 +223,7 @@ export const updatePaymentStatus = async (request: any) => {
 				receipt_url,
 				charges: eventObject,
 				bookingId: metadata.bookingId,
-				teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
+				teacherPayoutStatus: TeacherPayoutStatus.REQUESTED,
 				metadata,
 			});
 			await mailCollection.add(

@@ -20,12 +20,19 @@ import {
 	EPICBOARD_SESSION_STATUS_CODES,
 } from "../libs/status-codes";
 import {
+	SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
 	SESSION_TYPES,
 	StripeStatus,
+	TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
 	TeacherPayoutStatus,
 	UserTypes,
 } from "../libs/constants";
-import { acceptAndPayForBooking, payoutToTutor } from "../payments/methods";
+import {
+	acceptAndPayForBooking,
+	addServiceChargeOnAmount,
+	payoutToTutor,
+	removeTCDCommissionOnAmount,
+} from "../payments/methods";
 import {
 	bookingSuggestionStudent,
 	bookingSuggestionTutor,
@@ -666,7 +673,7 @@ export const confirmBooking = async (params: any) => {
 		teacherPayoutAmount,
 		serviceChargePercentage,
 		tcdCommissionPercentage,
-		teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
+		teacherPayoutStatus: TeacherPayoutStatus.REQUESTED,
 	});
 
 	const mailParams = {
@@ -743,14 +750,70 @@ export const isAllSessionsAreCompleted = (sessions: any) => {
 };
 
 export const addTutorTransferRequestForBooking = async (booking) => {
-	const { sessions, teacherPayoutAmount, teacherId } = booking;
+	const {
+		sessions,
+		teacherPayoutAmount,
+		teacherId,
+		teacherHourlyRate,
+		teacherGroupSessionRate,
+		requestThread,
+		sessionType,
+		id: bookingId,
+	} = booking;
+
+	let payoutAmount: any;
+	let bookingUpdateParams: any = {};
+
+	if (!teacherPayoutAmount) {
+		const { latestRequestMap } = getLastRequestObject(requestThread);
+
+		const allRequestSlots = latestRequestMap.slots;
+		const totalSessionLength = Object.keys(latestRequestMap.slots)
+			.filter(
+				(slotKey) =>
+					!allRequestSlots[slotKey].deleted &&
+					!allRequestSlots[slotKey].studentAccepted
+			)
+			.reduce(
+				(total, approvedSlotKey) =>
+					total + allRequestSlots[approvedSlotKey].sessionLength,
+				0
+			);
+		const rate =
+			sessionType === SESSION_TYPES.SINGLE
+				? teacherHourlyRate
+				: teacherGroupSessionRate;
+
+		const totalAmount = (rate / 60) * totalSessionLength;
+
+		const totalSessionCost = addServiceChargeOnAmount(totalAmount);
+
+		payoutAmount = removeTCDCommissionOnAmount(totalAmount);
+
+		bookingUpdateParams = {
+			totalSessionLength,
+			totalAmount,
+			totalSessionCost,
+			teacherPayoutAmount: payoutAmount,
+			serviceChargePercentage: SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
+			tcdCommissionPercentage: TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
+			teacherPayoutStatus: TeacherPayoutStatus.REQUESTED,
+		};
+	}
 
 	if (isAllSessionsAreCompleted(sessions)) {
 		await pendingTransfersRef().child(booking.id).set({
 			id: booking.id,
-			teacherPayoutAmount,
+			teacherPayoutAmount: payoutAmount,
 			teacherId,
+			teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
 		});
+
+		bookingUpdateParams["teacherPayoutStatus"] = TeacherPayoutStatus.INITIATED;
+	}
+
+	if (bookingUpdateParams.teacherPayoutStatus) {
+		await bookingRequestCollection.doc(bookingId).update(bookingUpdateParams);
 	}
 };
 
@@ -779,7 +842,7 @@ export const payTutorBookingAmount = async () => {
 			if (stripePayoutAccount.accountId) {
 				try {
 						const transfer = await payoutToTutor({
-						amount: teacherPayoutAmount,
+							amount: teacherPayoutAmount.toFixed(2),
 						accountId: stripePayoutAccount.accountId,
 						bookingId: id,
 					});
@@ -794,9 +857,13 @@ export const payTutorBookingAmount = async () => {
 								.update({ status: TeacherPayoutStatus.PROCESSING });
 						}
 				} catch (err) {
+						console.log("err", JSON.stringify(err));
 						await pendingTransfersRef()
 							.child(id)
-							.update({ error: err, status: TeacherPayoutStatus.FAILED });
+							.update({
+								error: err.raw ? err.raw.message : "unknown",
+								status: TeacherPayoutStatus.FAILED,
+							});
 						await bookingRequestCollection
 							.doc(id)
 							.update({ teacherPayoutStatus: TeacherPayoutStatus.FAILED });

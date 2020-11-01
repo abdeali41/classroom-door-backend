@@ -126,6 +126,7 @@ export const CLASSROOMDOOR_WEB_URL =
 	process.env.CLASSROOMDOOR_WEB_DEV_URL;
 
 export const TeacherPayoutStatus = {
+	REQUESTED: "REQUESTED",
 	INITIATED: "INITIATED",
 	PROCESSING: "PROCESSING",
 	PAID: "PAID",
