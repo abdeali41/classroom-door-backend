@@ -257,6 +257,13 @@ export const updatePaymentStatus = async (request: any) => {
 				stripeTransferObject: eventObject,
 			});
 			break;
+		case "account.updated":
+			await updateAccountDetails(eventObject);
+			break;
+		case "account.application.authorized":
+			break;
+		case "account.application.deauthorized":
+			break;
 		// ... handle other event types
 		default:
 			console.log(`Unhandled event type ${event.type}`);
@@ -283,8 +290,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 			firstName,
 			lastName,
 			gender,
-			ssnLastFour,
-			// id_number,
+			id_number,
 		} = params;
 
 		let account;
@@ -293,7 +299,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 
 		const dob = dateOfBirth.split("-");
 
-		// const ssnLastFour = id_number;
+		const ssnLastFour = id_number.substr(-4);
 
 		const accountParams = {
 			external_account: bankToken,
@@ -319,7 +325,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 				first_name: firstName,
 				last_name: lastName,
 				gender,
-				// id_number: "000000000",
+				id_number,
 			},
 			metadata: { userId },
 		};
