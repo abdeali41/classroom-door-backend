@@ -128,7 +128,7 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 			return [StripeStatus.PAYMENT_FAILURE];
 		}
 	} catch (err) {
-		console.log("error in payment", err);
+		console.log("error in payment", JSON.stringify(err));
 		return [StripeStatus.PAYMENT_FAILURE];
 	}
 };

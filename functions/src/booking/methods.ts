@@ -140,6 +140,8 @@ export const createBookingRequest = async (
 		sessionRequestedToTutor({ teacherId, teacherName, studentName })
 	);
 
+	console.log("teacher payout bookingRequestId", bookingRequestId);
+
 	return {
 		bookingRequest,
 	};
@@ -319,10 +321,13 @@ export const updateBookingRequest = async (
 		bookingRejectedOrCancelled = false,
 	} = params;
 
-	if (
-		checkIfAnySlotsAreBackDated(updatedSlotRequests) &&
-		allChangesApprovedByStudent
-	) {
+	console.log("bookingId", bookingId);
+
+	const ifAnySlotsAreBackDated = checkIfAnySlotsAreBackDated(
+		updatedSlotRequests
+	);
+
+	if (ifAnySlotsAreBackDated && allChangesApprovedByStudent) {
 		throw new Error(
 			"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
 		);
@@ -350,6 +355,16 @@ export const updateBookingRequest = async (
 					subjects,
 				} = bookingRequestData;
 				let newBookingRequestData: bookingRequestType = bookingRequestData;
+
+				if (
+					ifAnySlotsAreBackDated &&
+					!bookingRejectedOrCancelled &&
+					userId === teacherId
+				) {
+					throw new Error(
+						"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
+					);
+				}
 
 				// Status checks ----------
 				if (
@@ -741,10 +756,10 @@ export const addSessionsKeyOnBookingCollection = async (
 
 export const isAllSessionsAreCompleted = (sessions: any) => {
 	if (sessions) {
-	return Object.values(sessions).reduce((acc, sess: any) => {
-		const completed = sess.status === EPICBOARD_SESSION_STATUS_CODES.ENDED;
-		return acc && completed;
-	}, true);
+		return Object.values(sessions).reduce((acc, sess: any) => {
+			const completed = sess.status === EPICBOARD_SESSION_STATUS_CODES.ENDED;
+			return acc && completed;
+		}, true);
 	}
 	return false;
 };
@@ -835,17 +850,17 @@ export const payTutorBookingAmount = async () => {
 					return true;
 				}
 
-			const teacherSnap: any = await userMetaCollection.doc(teacherId).get();
+				const teacherSnap: any = await userMetaCollection.doc(teacherId).get();
 
-			const { stripePayoutAccount = {} } = teacherSnap.data();
+				const { stripePayoutAccount = {} } = teacherSnap.data();
 
-			if (stripePayoutAccount.accountId) {
-				try {
+				if (stripePayoutAccount.accountId) {
+					try {
 						const transfer = await payoutToTutor({
 							amount: teacherPayoutAmount.toFixed(2),
-						accountId: stripePayoutAccount.accountId,
-						bookingId: id,
-					});
+							accountId: stripePayoutAccount.accountId,
+							bookingId: id,
+						});
 
 						if (transfer.id) {
 							await bookingRequestCollection.doc(id).update({
@@ -856,7 +871,7 @@ export const payTutorBookingAmount = async () => {
 								.child(id)
 								.update({ status: TeacherPayoutStatus.PROCESSING });
 						}
-				} catch (err) {
+					} catch (err) {
 						console.log("err", JSON.stringify(err));
 						await pendingTransfersRef()
 							.child(id)
@@ -867,15 +882,15 @@ export const payTutorBookingAmount = async () => {
 						await bookingRequestCollection
 							.doc(id)
 							.update({ teacherPayoutStatus: TeacherPayoutStatus.FAILED });
+						return false;
+					}
+
+					return true;
+				} else {
 					return false;
 				}
-
-				return true;
-			} else {
-				return false;
-			}
-		})
-	);
+			})
+		);
 
 		return done;
 	}
