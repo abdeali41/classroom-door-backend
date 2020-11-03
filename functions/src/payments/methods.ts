@@ -390,7 +390,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 		return { stripePayoutAccount };
 	} catch (err) {
 		console.log("err", JSON.stringify(err));
-		return { message: err };
+		return { message: err?.raw?.message, error: true };
 	}
 };
 
