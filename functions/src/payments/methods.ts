@@ -267,32 +267,35 @@ export const updatePaymentStatus = async (request: any) => {
 };
 
 export const attachBankAccountToCustomer = async (params: any) => {
-	const {
-		userId,
-		bankToken,
-		countryCode,
-		email,
-		currency,
-		accountId,
-		accountHolderType,
-		ip,
-		address,
-		dateOfBirth,
-		ssnLastFour,
-		phone,
-		firstName,
-		lastName,
-		gender,
-	} = params;
 	try {
+		const {
+			userId,
+			// countryCode,
+			bankToken,
+			email,
+			currency,
+			accountId,
+			accountHolderType,
+			ip,
+			address,
+			dateOfBirth,
+			phone,
+			firstName,
+			lastName,
+			gender,
+			ssnLastFour,
+			// id_number,
+		} = params;
+
 		let account;
 
 		console.log("accountId", accountId);
 
 		const dob = dateOfBirth.split("-");
 
+		// const ssnLastFour = id_number;
+
 		const accountParams = {
-			country: countryCode,
 			external_account: bankToken,
 			default_currency: currency,
 			business_type: accountHolderType,
@@ -301,8 +304,8 @@ export const attachBankAccountToCustomer = async (params: any) => {
 					city: address.city,
 					country: address.country,
 					line1: address.line1,
-					line2: address.lin2,
-					postal_code: address.postalCode,
+					line2: address.line2,
+					postal_code: address.postal_code,
 					state: address.state,
 				},
 				dob: {
@@ -316,6 +319,7 @@ export const attachBankAccountToCustomer = async (params: any) => {
 				first_name: firstName,
 				last_name: lastName,
 				gender,
+				// id_number: "000000000",
 			},
 			metadata: { userId },
 		};
@@ -335,21 +339,48 @@ export const attachBankAccountToCustomer = async (params: any) => {
 					ip,
 				},
 				business_profile: {
+					mcc: "8299",
 					url: CLASSROOMDOOR_WEB_URL,
 					support_url: CLASSROOMDOOR_WEB_URL,
 				},
+				// country: countryCode,
 				...accountParams,
 			});
 		}
 
 		const stripePayoutAccount = {
 			accountId: account.id,
-			bankAccount: account.external_accounts?.data[0],
+			bankAccount: {
+				id: account.external_accounts?.data[0].id,
+				account_holder_name:
+					account.external_accounts?.data[0].account_holder_name,
+				account_holder_type:
+					account.external_accounts?.data[0].account_holder_type,
+				bank_name: account.external_accounts?.data[0].bank_name,
+				country: account.external_accounts?.data[0].country,
+				currency: account.external_accounts?.data[0].currency,
+				last4: account.external_accounts?.data[0].last4,
+				routing_number: account.external_accounts?.data[0].routing_number,
+			},
 			accountType: account.type,
 			capabilities: account.capabilities,
-			individual: account.individual,
-			payouts: account.payouts,
+			individual: {
+				id: account.individual.id,
+				address: account.individual.address,
+				dob: account.individual.dob,
+				email: account.individual.email,
+				first_name: account.individual.first_name,
+				gender: account.individual.gender,
+				last_name: account.individual.last_name,
+				phone: account.individual.phone,
+			},
+			metadata: account.metadata,
 		};
+
+		console.log("stripePayoutAccount", JSON.stringify(stripePayoutAccount));
+
+		await userMetaCollection.doc(userId).update({ stripePayoutAccount });
+
 		return { stripePayoutAccount };
 	} catch (err) {
 		console.log("err", JSON.stringify(err));
@@ -370,14 +401,34 @@ export const payoutToTutor = async (params: any) => {
 	return transfer;
 };
 
-const updateAccountDetails = async (account) => {
+const updateAccountDetails = async (account: any) => {
 	const stripePayoutAccount = {
 		accountId: account.id,
-		bankAccount: account.external_accounts?.data[0],
+		bankAccount: {
+			id: account.external_accounts?.data[0].id,
+			account_holder_name:
+				account.external_accounts?.data[0].account_holder_name,
+			account_holder_type:
+				account.external_accounts?.data[0].account_holder_type,
+			bank_name: account.external_accounts?.data[0].bank_name,
+			country: account.external_accounts?.data[0].country,
+			currency: account.external_accounts?.data[0].currency,
+			last4: account.external_accounts?.data[0].last4,
+			routing_number: account.external_accounts?.data[0].routing_number,
+		},
 		accountType: account.type,
 		capabilities: account.capabilities,
-		individual: account.individual,
-		payouts: account.payouts,
+		individual: {
+			id: account.individual.id,
+			address: account.individual.address,
+			dob: account.individual.dob,
+			email: account.individual.email,
+			first_name: account.individual.first_name,
+			gender: account.individual.gender,
+			last_name: account.individual.last_name,
+			phone: account.individual.phone,
+		},
+		metadata: account.metadata,
 	};
 
 	await userMetaCollection
