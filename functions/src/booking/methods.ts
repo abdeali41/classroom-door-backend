@@ -376,14 +376,19 @@ export const updateBookingRequest = async (
 					// Already accepted
 					throw new Error("Already accepted");
 				} else if (
-					status > BOOKING_REQUEST_STATUS_CODES.ACCEPTED &&
-					status < BOOKING_REQUEST_STATUS_CODES.CONFIRMED
+					status === BOOKING_REQUEST_STATUS_CODES.CANCELLED ||
+					status === BOOKING_REQUEST_STATUS_CODES.REJECTED
 				) {
 					// Already Rejected or cancelled
 					throw new Error("Already Rejected or cancelled");
 				} else if (status === BOOKING_REQUEST_STATUS_CODES.CONFIRMED) {
 					// Already Confirmed
 					throw new Error("Already Confirmed");
+				} else if (status === BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING) {
+					// payment processing
+					throw new Error(
+						"Your payment is in process. Booking will be confirm once approved"
+					);
 				}
 
 				// Updated Checks ---------
