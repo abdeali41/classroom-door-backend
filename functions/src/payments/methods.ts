@@ -336,7 +336,6 @@ export const attachBankAccountToCustomer = async (params: any) => {
 			account = await stripe.accounts.create({
 				type: "custom",
 				capabilities: {
-					card_payments: { requested: true },
 					transfers: { requested: true },
 				},
 				email: email,
