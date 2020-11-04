@@ -473,3 +473,49 @@ export const connectedAccountStatus = async (request: any) => {
 	// Return a response to acknowledge receipt of the event
 	return { updated: true };
 };
+
+export const stripeCustomerAccountCorrection = async (params: any) => {
+	const customersList = await stripe.customers.list({
+		limit: 100,
+	});
+
+	const customers = customersList.data;
+
+	const done = await Promise.all(
+		customers.map(async (cust) => {
+			if (cust.name?.includes("undefined")) {
+				const userMetaSnap = await userMetaCollection
+					.where("stripeCustomer.id", "==", cust.id)
+					.get();
+
+				if (userMetaSnap.docs.length > 0) {
+					const userId = userMetaSnap.docs[0].id;
+
+					const userSnap = await userCollection.doc(userId).get();
+					const user: any = userSnap.data();
+
+					const { email, firstName, lastName } = user;
+
+					const customer = await stripe.customers.update(cust.id, {
+						email,
+						name: `${firstName}  ${lastName}`,
+					});
+
+					await userMetaCollection
+						.doc(userId)
+						.update({ stripeCustomer: customer });
+
+					return customer;
+				} else {
+					const customer = await stripe.customers.del(cust.id);
+
+					return customer;
+				}
+			} else {
+				return true;
+			}
+		})
+	);
+
+	return done;
+};

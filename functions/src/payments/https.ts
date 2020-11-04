@@ -43,3 +43,18 @@ export const stripeConnectedAccWebhook = functions.https.onRequest(
 			});
 	}
 );
+
+// CORRECT STRIPE ISSUES USING THIS ENDPOINT
+export const stripeCorrections = functions.https.onRequest(
+	(req: any, res: any) => {
+		methods
+			.stripeCustomerAccountCorrection(req.body)
+			.then((result) => {
+				res.json(result);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				res.status(400).json(err);
+			});
+	}
+);
