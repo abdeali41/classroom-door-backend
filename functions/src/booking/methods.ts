@@ -821,6 +821,8 @@ export const addTutorTransferRequestForBooking = async (booking) => {
 		};
 	}
 
+	console.log("addTutorTransferRequestForBooking-payoutAmount", payoutAmount);
+
 	if (isAllSessionsAreCompleted(sessions)) {
 		await pendingTransfersRef().child(booking.id).set({
 			id: booking.id,
