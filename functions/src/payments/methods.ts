@@ -477,6 +477,7 @@ export const connectedAccountStatus = async (request: any) => {
 export const stripeCustomerAccountCorrection = async (params: any) => {
 	const customersList = await stripe.customers.list({
 		limit: 100,
+		starting_after: params.startId,
 	});
 
 	const customers = customersList.data;
