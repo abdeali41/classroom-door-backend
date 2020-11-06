@@ -498,7 +498,7 @@ export const updateBookingRequest = async (
 						} else {
 							throw {
 								name: "PaymentError",
-								message: "Unable to process payment",
+								message: client_secret,
 							};
 						}
 					}

@@ -122,14 +122,14 @@ export const acceptAndPayForBooking = async (params: any): Promise<any> => {
 			if (type === "use_stripe_sdk") {
 				return [StripeStatus.REQUIRES_ACTION, client_secret];
 			} else {
-				return [StripeStatus.PAYMENT_FAILURE];
+				return [StripeStatus.PAYMENT_FAILURE, "Unable to process payment"];
 			}
 		} else {
-			return [StripeStatus.PAYMENT_FAILURE];
+			return [StripeStatus.PAYMENT_FAILURE, "Unable to process payment"];
 		}
 	} catch (err) {
 		console.log("error in payment", JSON.stringify(err));
-		return [StripeStatus.PAYMENT_FAILURE];
+		return [StripeStatus.PAYMENT_FAILURE, err?.raw?.message];
 	}
 };
 
