@@ -661,7 +661,7 @@ export const teacherPendingBookingRequestCount = async (
 const checkIfAnySlotsAreBackDated = (slots) => {
 	const checkDate = Object.values(slots).reduce((acc, curr: any) => {
 		const dateInPast = moment(curr.suggestedDateTime).isBefore(
-			moment().add(30, "minutes")
+			moment().add(1, "minutes")
 		);
 		return dateInPast || acc;
 	}, false);
