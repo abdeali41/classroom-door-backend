@@ -6,19 +6,13 @@ import * as methods from "./methods";
 // TO TEST STRIPE QUERIES WITHOUT CALLABLE
 export const testPayment = functions.https.onRequest((req: any, res: any) => {
 	methods
-		.creatStripeCustomer(req.body)
-		.then((customer) => {
-			res.json({
-				success: true,
-				customer,
-			});
+		.payoutToTutor(req.body)
+		.then((result) => {
+			res.json(result);
 		})
 		.catch((err) => {
 			console.log("err", err);
-			res.json({
-				success: false,
-				error: err,
-			});
+			res.json(err);
 		});
 });
 
@@ -34,3 +28,33 @@ export const stripeWebhook = functions.https.onRequest((req: any, res: any) => {
 			res.status(400).json(err);
 		});
 });
+
+// WEBHOOK FOR STRIPE CONNECTED ACCOUNT
+export const stripeConnectedAccWebhook = functions.https.onRequest(
+	(req: any, res: any) => {
+		methods
+			.connectedAccountStatus(req)
+			.then((result) => {
+				res.json(result);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				res.status(400).json(err);
+			});
+	}
+);
+
+// CORRECT STRIPE ISSUES USING THIS ENDPOINT
+export const stripeCorrections = functions.https.onRequest(
+	(req: any, res: any) => {
+		methods
+			.stripeCustomerAccountCorrection(req.body)
+			.then((result) => {
+				res.json(result);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				res.status(400).json(err);
+			});
+	}
+);

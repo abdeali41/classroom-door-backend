@@ -7,6 +7,7 @@ import {
 	teacherCollection,
 	userCollection,
 	mailCollection,
+	pendingTransfersRef,
 } from "../db";
 import {
 	addModifiedTimeStamp,
@@ -14,9 +15,24 @@ import {
 	addCreationTimeStamp,
 } from "../libs/generics";
 import { userMetaSubCollectionKeys } from "../db/enum";
-import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
-import { SESSION_TYPES, StripeStatus, UserTypes } from "../libs/constants";
-import { acceptAndPayForBooking } from "../payments/methods";
+import {
+	BOOKING_REQUEST_STATUS_CODES,
+	EPICBOARD_SESSION_STATUS_CODES,
+} from "../libs/status-codes";
+import {
+	SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
+	SESSION_TYPES,
+	StripeStatus,
+	TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
+	TeacherPayoutStatus,
+	UserTypes,
+} from "../libs/constants";
+import {
+	acceptAndPayForBooking,
+	addServiceChargeOnAmount,
+	payoutToTutor,
+	removeTCDCommissionOnAmount,
+} from "../payments/methods";
 import {
 	bookingSuggestionStudent,
 	bookingSuggestionTutor,
@@ -123,6 +139,8 @@ export const createBookingRequest = async (
 	await mailCollection.add(
 		sessionRequestedToTutor({ teacherId, teacherName, studentName })
 	);
+
+	console.log("teacher payout bookingRequestId", bookingRequestId);
 
 	return {
 		bookingRequest,
@@ -303,10 +321,13 @@ export const updateBookingRequest = async (
 		bookingRejectedOrCancelled = false,
 	} = params;
 
-	if (
-		checkIfAnySlotsAreBackDated(updatedSlotRequests) &&
-		!bookingRejectedOrCancelled
-	) {
+	console.log("bookingId", bookingId);
+
+	const ifAnySlotsAreBackDated = checkIfAnySlotsAreBackDated(
+		updatedSlotRequests
+	);
+
+	if (ifAnySlotsAreBackDated && allChangesApprovedByStudent) {
 		throw new Error(
 			"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
 		);
@@ -335,6 +356,16 @@ export const updateBookingRequest = async (
 				} = bookingRequestData;
 				let newBookingRequestData: bookingRequestType = bookingRequestData;
 
+				if (
+					ifAnySlotsAreBackDated &&
+					!bookingRejectedOrCancelled &&
+					userId === teacherId
+				) {
+					throw new Error(
+						"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
+					);
+				}
+
 				// Status checks ----------
 				if (
 					status === BOOKING_REQUEST_STATUS_CODES.ACCEPTED &&
@@ -345,14 +376,19 @@ export const updateBookingRequest = async (
 					// Already accepted
 					throw new Error("Already accepted");
 				} else if (
-					status > BOOKING_REQUEST_STATUS_CODES.ACCEPTED &&
-					status < BOOKING_REQUEST_STATUS_CODES.CONFIRMED
+					status === BOOKING_REQUEST_STATUS_CODES.CANCELLED ||
+					status === BOOKING_REQUEST_STATUS_CODES.REJECTED
 				) {
 					// Already Rejected or cancelled
 					throw new Error("Already Rejected or cancelled");
 				} else if (status === BOOKING_REQUEST_STATUS_CODES.CONFIRMED) {
 					// Already Confirmed
 					throw new Error("Already Confirmed");
+				} else if (status === BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING) {
+					// payment processing
+					throw new Error(
+						"Your payment is in process. Booking will be confirm once approved"
+					);
 				}
 
 				// Updated Checks ---------
@@ -462,7 +498,7 @@ export const updateBookingRequest = async (
 						} else {
 							throw {
 								name: "PaymentError",
-								message: "Unable to process payment",
+								message: client_secret,
 							};
 						}
 					}
@@ -625,7 +661,7 @@ export const teacherPendingBookingRequestCount = async (
 const checkIfAnySlotsAreBackDated = (slots) => {
 	const checkDate = Object.values(slots).reduce((acc, curr: any) => {
 		const dateInPast = moment(curr.suggestedDateTime).isBefore(
-			moment().add(30, "minutes")
+			moment().add(1, "minutes")
 		);
 		return dateInPast || acc;
 	}, false);
@@ -641,10 +677,23 @@ export const confirmBooking = async (params: any) => {
 		studentName,
 		sessionString,
 		subjectString,
+		totalAmount,
+		totalSessionCost,
+		teacherPayoutAmount,
+		totalSessionLength,
+		serviceChargePercentage,
+		tcdCommissionPercentage,
 	} = params;
 
 	const bookingUpdated = await bookingRequestCollection.doc(bookingId).update({
 		status: BOOKING_REQUEST_STATUS_CODES.CONFIRMED,
+		totalSessionLength,
+		totalAmount,
+		totalSessionCost,
+		teacherPayoutAmount,
+		serviceChargePercentage,
+		tcdCommissionPercentage,
+		teacherPayoutStatus: TeacherPayoutStatus.REQUESTED,
 	});
 
 	const mailParams = {
@@ -689,4 +738,183 @@ const getConfirmedSessionString = (requestThread) => {
 		);
 
 	return sessionString;
+};
+
+export const addSessionsKeyOnBookingCollection = async (
+	bookingId: string,
+	sessions: Array<any>
+) => {
+	const fieldValue = sessions.reduce(
+		(acc, sess) => ({
+			...acc,
+			[sess.sessionId]: {
+				status: EPICBOARD_SESSION_STATUS_CODES.CREATED,
+			},
+		}),
+		{}
+	);
+
+	await bookingRequestCollection.doc(bookingId).update({
+		sessions: fieldValue,
+	});
+};
+
+export const isAllSessionsAreCompleted = (sessions: any) => {
+	if (sessions) {
+		return Object.values(sessions).reduce((acc, sess: any) => {
+			const completed = sess.status === EPICBOARD_SESSION_STATUS_CODES.ENDED;
+			return acc && completed;
+		}, true);
+	}
+	return false;
+};
+
+export const addTutorTransferRequestForBooking = async (booking) => {
+	const {
+		sessions,
+		teacherPayoutAmount,
+		teacherId,
+		teacherHourlyRate,
+		teacherGroupSessionRate,
+		requestThread,
+		sessionType,
+		id: bookingId,
+	} = booking;
+
+	let payoutAmount: any;
+	let bookingUpdateParams: any = {};
+
+	if (!teacherPayoutAmount) {
+		const { latestRequestMap } = getLastRequestObject(requestThread);
+
+		const allRequestSlots = latestRequestMap.slots;
+		const totalSessionLength = Object.keys(latestRequestMap.slots)
+			.filter(
+				(slotKey) =>
+					!allRequestSlots[slotKey].deleted &&
+					!allRequestSlots[slotKey].studentAccepted
+			)
+			.reduce(
+				(total, approvedSlotKey) =>
+					total + allRequestSlots[approvedSlotKey].sessionLength,
+				0
+			);
+		const rate =
+			sessionType === SESSION_TYPES.SINGLE
+				? teacherHourlyRate
+				: teacherGroupSessionRate;
+
+		const totalAmount = (rate / 60) * totalSessionLength;
+
+		const totalSessionCost = addServiceChargeOnAmount(totalAmount);
+
+		payoutAmount = removeTCDCommissionOnAmount(totalAmount);
+
+		bookingUpdateParams = {
+			totalSessionLength,
+			totalAmount,
+			totalSessionCost,
+			teacherPayoutAmount: payoutAmount,
+			serviceChargePercentage: SERVICE_CHARGE_PERCENTAGE_ON_BOOKING,
+			tcdCommissionPercentage: TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
+			teacherPayoutStatus: TeacherPayoutStatus.REQUESTED,
+		};
+	}
+
+	console.log("addTutorTransferRequestForBooking-payoutAmount", payoutAmount);
+
+	if (isAllSessionsAreCompleted(sessions)) {
+		await pendingTransfersRef().child(booking.id).set({
+			id: booking.id,
+			teacherPayoutAmount: payoutAmount,
+			teacherId,
+			teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
+		});
+
+		bookingUpdateParams["teacherPayoutStatus"] = TeacherPayoutStatus.INITIATED;
+	}
+
+	if (bookingUpdateParams.teacherPayoutStatus) {
+		await bookingRequestCollection.doc(bookingId).update(bookingUpdateParams);
+	}
+};
+
+export const payTutorBookingAmount = async () => {
+	const pendingTransfersSnap = await pendingTransfersRef().once("value");
+	const pendingTransfers = pendingTransfersSnap.val();
+
+	if (pendingTransfers) {
+		const done = await Promise.all(
+			Object.values(pendingTransfers).map(async (booking: any) => {
+				const {
+					id,
+					teacherPayoutAmount,
+					teacherId,
+					status = TeacherPayoutStatus.INITIATED,
+				} = booking;
+
+				if (status === TeacherPayoutStatus.PROCESSING) {
+					return true;
+				}
+
+				const teacherSnap: any = await userMetaCollection.doc(teacherId).get();
+
+				const { stripePayoutAccount = {} } = teacherSnap.data();
+
+				if (stripePayoutAccount.accountId) {
+					try {
+						const transfer = await payoutToTutor({
+							amount: teacherPayoutAmount.toFixed(2),
+							accountId: stripePayoutAccount.accountId,
+							bookingId: id,
+						});
+
+						if (transfer.id) {
+							await bookingRequestCollection.doc(id).update({
+								teacherPayoutStatus: TeacherPayoutStatus.PROCESSING,
+								stripeTransferObject: transfer,
+							});
+							await pendingTransfersRef()
+								.child(id)
+								.update({ status: TeacherPayoutStatus.PROCESSING });
+						}
+					} catch (err) {
+						console.log("err", JSON.stringify(err));
+						await pendingTransfersRef()
+							.child(id)
+							.update({
+								error: err.raw ? err.raw.message : "unknown",
+								status: TeacherPayoutStatus.FAILED,
+							});
+						await bookingRequestCollection
+							.doc(id)
+							.update({ teacherPayoutStatus: TeacherPayoutStatus.FAILED });
+						return false;
+					}
+
+					return true;
+				} else {
+					return false;
+				}
+			})
+		);
+
+		return done;
+	}
+	return true;
+};
+
+export const updateBookingPayoutStatus = async (
+	bookingId: string,
+	params: any
+) => {
+	await bookingRequestCollection.doc(bookingId).update(params);
+
+	if (params.teacherPayoutStatus === TeacherPayoutStatus.PAID) {
+		await pendingTransfersRef().child(bookingId).remove();
+	} else {
+		await pendingTransfersRef()
+			.child(bookingId)
+			.update({ status: params.teacherPayoutStatus });
+	}
 };

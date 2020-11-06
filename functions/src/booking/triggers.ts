@@ -1,8 +1,14 @@
 import * as functions from "firebase-functions";
 import { firestoreCollectionKeys } from "../db/enum";
+import { TeacherPayoutStatus } from "../libs/constants";
 import { BOOKING_REQUEST_STATUS_CODES } from "../libs/status-codes";
 import { createEpicboardSession } from "../sessions/methods";
-import { updateBookingRequestStatus, updateConnectedPeople } from "./methods";
+import {
+	addSessionsKeyOnBookingCollection,
+	addTutorTransferRequestForBooking,
+	updateBookingRequestStatus,
+	updateConnectedPeople,
+} from "./methods";
 
 /** BOOKING TRIGGERS **/
 
@@ -43,6 +49,11 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 			// create session data for booking request Updated
 			// list of session ids
 
+			await addSessionsKeyOnBookingCollection(
+				bookingRequestId,
+				approvedSessions
+			);
+
 			await updateConnectedPeople(bookingRequestAfterData, approvedSessions);
 		}
 
@@ -54,5 +65,20 @@ export const onUpdateBookingRequestTrigger = functions.firestore
 				bookingRequestId,
 				bookingRequestAfterData
 			);
+		}
+
+		const {
+			teacherPayoutStatus = TeacherPayoutStatus.REQUESTED,
+		} = bookingRequestAfterData;
+
+		if (
+			bookingRequestAfterData.status ===
+				BOOKING_REQUEST_STATUS_CODES.CONFIRMED &&
+			teacherPayoutStatus !== TeacherPayoutStatus.PROCESSING &&
+			teacherPayoutStatus !== TeacherPayoutStatus.PAID &&
+			teacherPayoutStatus !== TeacherPayoutStatus.INITIATED
+		) {
+			// add tutor transfer request
+			await addTutorTransferRequestForBooking(bookingRequestAfterData);
 		}
 	});

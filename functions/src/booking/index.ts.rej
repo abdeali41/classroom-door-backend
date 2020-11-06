@@ -1,8 +1,0 @@
-diff a/functions/src/booking-request/index.ts b/functions/src/booking-request/index.ts	(rejected hunks)
-@@ -1,5 +1,5 @@
- import * as functions from "firebase-functions";
--import { firestoreDB, bookingRequestCollection, userMetaCollection } from ".."
-+import { firestoreDB, bookingRequestCollection, userMetaCollection } from ".."
- import {
-     addCreationTimeStamp,
-     pushAsSuccessResponse,

@@ -19,6 +19,7 @@ import {
 	getRoomUserRef,
 	getRoomRef,
 	userCollection,
+	getSessionStatusRef,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { isBetweenInterval } from "../libs/date-utils";
@@ -115,7 +116,12 @@ export const createEpicboardSession = async (
 				bookingRequestSlotId: approvedSlotKey,
 				bookingRequestThreadObjectId: latestRequestKey,
 				startTime: allRequestSlots[approvedSlotKey].suggestedDateTime,
+				endTime: moment(allRequestSlots[approvedSlotKey].suggestedDateTime)
+					.add(allRequestSlots[approvedSlotKey].sessionLength, "minutes")
+					.utc()
+					.toISOString(),
 				sessionLength: allRequestSlots[approvedSlotKey].sessionLength,
+				attendance: [],
 			});
 			epicboardSessionBatchWrite.set(
 				epicboardSessionCollection.doc(epicboardSessionId),
@@ -372,7 +378,7 @@ export const updateEpicboardRoomStatus = async (
 export const joinEpicboardSession = async (
 	params: JoinEpicboardSessionRequestType
 ): Promise<joinEpicboardSessionReturnType> => {
-	const { sessionId } = params;
+	const { sessionId, userId } = params;
 	const epicboardSessionSnapshot = await epicboardSessionCollection
 		.doc(sessionId)
 		.get();
@@ -387,6 +393,8 @@ export const joinEpicboardSession = async (
 		subjects,
 		studentId,
 		sessionType,
+		attendance = [],
+		bookingId,
 	}: any = epicboardSession;
 
 	const endTime = moment(startTime).add(sessionLength, "minutes");
@@ -438,9 +446,30 @@ export const joinEpicboardSession = async (
 	} else {
 		await getRoomCurrentSessionRef(roomId).set(sessionId);
 	}
-	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data()
 
-	return { roomId, message: "Epicboard Session created", teacherId, sessionId, tutorUserDetails };
+	if (!attendance.includes(userId)) {
+		await epicboardSessionCollection.doc(sessionId).update({
+			attendance: firestore.FieldValue.arrayUnion(userId),
+		});
+
+		await getSessionStatusRef().child(sessionId).set({
+			id: sessionId,
+			bookingId,
+			startTime,
+			sessionLength,
+			endTime: endTime.utc().toISOString(),
+		});
+	}
+
+	const tutorUserDetails = (await userCollection.doc(teacherId).get()).data();
+
+	return {
+		roomId,
+		message: "Epicboard Session created",
+		teacherId,
+		sessionId,
+		tutorUserDetails,
+	};
 };
 
 export const updateMinutesTutoringOfTutor = async (
@@ -495,4 +524,81 @@ export const updateSessionEndStatus = async (
 				.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
 		}
 	}
+};
+
+export const updatePendingSessionStatus = async () => {
+	const sessionSnapshot = await epicboardSessionCollection
+		.where("status", "==", EPICBOARD_ROOM_STATUS_CODES.CREATED)
+		.limit(10)
+		.get();
+
+	console.log("sessionSnapshot.size", sessionSnapshot.size);
+
+	const sessions: Array<object> = [];
+
+	sessionSnapshot.forEach((session) => {
+		const { startTime, sessionLength, status } = session.data();
+
+		const endTime = moment(startTime)
+			.add(sessionLength, "minutes")
+			.utc()
+			.toISOString();
+
+		if (moment(endTime).isBefore(moment())) {
+			sessions.push({
+				id: session.id,
+				sessionLength,
+				startTime,
+				endTime,
+				status,
+			});
+		}
+	});
+
+	console.log("sessions.length", sessions.length);
+
+	await Promise.all(
+		sessions.map(async (sess: any) => {
+			await getSessionStatusRef().child(sess.id).set(sess);
+			return true;
+		})
+	);
+
+	return true;
+};
+
+export const changeCompletedSessionStatus = async () => {
+	const sessionsSnap = await getSessionStatusRef().once("value");
+	const sessions = sessionsSnap.val();
+
+	if (sessions) {
+		const done = await Promise.all(
+			Object.values(sessions).map(async (session: any) => {
+				const { id, startTime, sessionLength, endTime } = session;
+
+				let sessionCompleted = false;
+
+				if (endTime) {
+					sessionCompleted = moment(endTime).isBefore(moment());
+				} else {
+					sessionCompleted = moment(
+						moment(startTime).add(sessionLength, "minutes").utc().toISOString()
+					).isBefore(moment());
+				}
+
+				if (sessionCompleted) {
+					await epicboardSessionCollection
+						.doc(id)
+						.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
+					await getSessionStatusRef().child(id).remove();
+					return true;
+				} else {
+					return false;
+				}
+			})
+		);
+		return done;
+	}
+
+	return true;
 };
