@@ -7,17 +7,13 @@ export const sessionRequestedToTutor = ({
 }) => {
 	return {
 		toUids: [teacherId],
-		message: {
-			subject: "Session Requested",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${teacherName},&nbsp;</span></p>
-            <p><br></p>
-            <p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">${studentName} has requested a session with you!&nbsp;</span></p>
-            <p><br></p>
-            <p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-            <p><br></p>
-            <p><br></p>
-            <p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-            <p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "session-request-to-tutor",
+			data: {
+				teacherName,
+				studentName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -183,16 +179,12 @@ export const bankingInfoUpdated = ({ userId, userName }) => {
 export const paymentProcessed = ({ userId, userName, receiptUrl }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Payment Processed",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your payment has been processed.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><a style="font-size:12pt;font-family:Arial;color:#00ffff;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${receiptUrl}">${receiptUrl}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All our best,</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "payment-processed",
+			data: {
+				userName,
+				receiptUrl,
+			},
 		},
 	};
 };
@@ -200,16 +192,12 @@ export const paymentProcessed = ({ userId, userName, receiptUrl }) => {
 export const paymentDeposited = ({ userId, userName, receiptUrl }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "You’ve been paid!",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">A payment has been deposited into your account.</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><a style="font-size:12pt;font-family:Arial;color:#00ffff;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${receiptUrl}">${receiptUrl}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All our best,</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "payment-deposited",
+			data: {
+				userName,
+				receiptUrl,
+			},
 		},
 	};
 };
@@ -217,16 +205,13 @@ export const paymentDeposited = ({ userId, userName, receiptUrl }) => {
 export const paymentFailed = ({ userId, userName, amount }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Payment Failure!",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">There&rsquo;s been an error with your payment method. Your credit card was declined when trying to process your booking charge totaling ${amount}. We will attempt to recharge the payment method on file in 24 hours. In order to ensure that your payment is processed on time for your session, please</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:700;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;update your credit card information or your tutor request will expire</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "payment-deposited",
+			data: {
+				userName,
+				amount,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -366,18 +351,15 @@ export const sessionBookedStudent = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Session Booked on The Classroom Door",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${studentName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hooray! Your session with&nbsp;</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:italic;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">${teacherName}</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;is scheduled for <b>${sessions}</b></span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;for ${subjects}</span>.</p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Help ${teacherName} prepare for your session by sharing your academic goals as well as any helpful documents (course syllabus, assignment rubric,or application materials for advising sessions).&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "session-booked-student",
+			data: {
+				studentName,
+				teacherName,
+				subjects,
+				sessions,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -390,17 +372,14 @@ export const sessionBookedTutor = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Session Booked on The Classroom Door",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${teacherName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Woo-hoo! Your session with</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:italic;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;${studentName}</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;is booked for <b>${sessions}</b></span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">. Please review their profile for important information/notes regarding your upcoming session.&nbsp;</span></p>
-			<p><br></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "session-booked-tutor",
+			data: {
+				studentName,
+				teacherName,
+				sessions,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -489,14 +468,13 @@ export const sessionCancelledByTutorStudent = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: `Your session has been cancelled by the tutor/advisor`,
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${studentName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your session with ${teacherName}</span><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">&nbsp;has been cancelled. We sincerely apologize for any inconvenience this may have caused. Please use the app to schedule a new session&nbsp;</span><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "session-cancelled-by-tutor-student",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -507,16 +485,13 @@ export const sessionCancelledByTutorTutor = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "You have cancelled your session",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${teacherName},&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your session with ${studentName} has been successfully cancelled. While we know things happen, please be mindful not to cancel often as it is disruptive to the student and can negatively affect your rating.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">You are encouraged to reschedule with ${studentName} if you can, reach out to them here: </span><a style="font-size:12pt;font-family:Arial;color:#000000;background-color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "session-cancelled-by-tutor-tutor",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -528,14 +503,13 @@ export const sessionCancelledByStudentStudent = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Your session has been cancelled",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${studentName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your session with ${teacherName} has been cancelled. Please use the app to schedule a new session <a style="font-size: 12pt ; font-family: &quot;arial&quot; ; color: #00ff00 ; font-weight: 400 ; font-style: normal ; font-variant: normal ; text-decoration: none ; vertical-align: baseline ; white-space: pre ; white-space: pre-wrap" href="${CLASSROOMDOOR_WEB_URL}" target="_other" rel="nofollow">${CLASSROOMDOOR_WEB_URL}</a>.</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "session-cancelled-by-student-student",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -547,14 +521,13 @@ export const sessionCancelledByStudentTutor = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Your session has been cancelled by the student",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${teacherName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your session with ${studentName} has been cancelled. We sincerely apologize for any inconvenience this may have caused.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "session-cancelled-by-student-tutor",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -565,14 +538,13 @@ export const bookingSuggestionStudent = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: `${teacherName} has suggested session time`,
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${studentName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">${teacherName} has suggested session time on your booking. Please use the app to reply  <a style="font-size: 12pt ; font-family: &quot;arial&quot; ; color: #00ff00 ; font-weight: 400 ; font-style: normal ; font-variant: normal ; text-decoration: none ; vertical-align: baseline ; white-space: pre ; white-space: pre-wrap" href="${CLASSROOMDOOR_WEB_URL}" target="_other" rel="nofollow">${CLASSROOMDOOR_WEB_URL}</a></span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "booking-suggestion-student",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -584,14 +556,13 @@ export const bookingSuggestionTutor = ({
 }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: `${studentName} has requested changes in session time`,
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${teacherName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">${studentName} has requested changes on suggested session timings. Please use the app to reply <a style="font-size: 12pt ; font-family: &quot;arial&quot; ; color: #00ff00 ; font-weight: 400 ; font-style: normal ; font-variant: normal ; text-decoration: none ; vertical-align: baseline ; white-space: pre ; white-space: pre-wrap" href="${CLASSROOMDOOR_WEB_URL}" target="_other" rel="nofollow">${CLASSROOMDOOR_WEB_URL}</a></span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "booking-suggestion-tutor",
+			data: {
+				studentName,
+				teacherName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };

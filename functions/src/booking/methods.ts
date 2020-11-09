@@ -821,15 +821,20 @@ export const addTutorTransferRequestForBooking = async (booking) => {
 		};
 	}
 
-	console.log("addTutorTransferRequestForBooking-payoutAmount", payoutAmount);
+	console.log(
+		"addTutorTransferRequestForBooking-payoutAmount",
+		payoutAmount || teacherPayoutAmount
+	);
 
 	if (isAllSessionsAreCompleted(sessions)) {
-		await pendingTransfersRef().child(booking.id).set({
-			id: booking.id,
-			teacherPayoutAmount: payoutAmount,
-			teacherId,
-			teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
-		});
+		await pendingTransfersRef()
+			.child(booking.id)
+			.set({
+				id: booking.id,
+				teacherPayoutAmount: payoutAmount || teacherPayoutAmount,
+				teacherId,
+				teacherPayoutStatus: TeacherPayoutStatus.INITIATED,
+			});
 
 		bookingUpdateParams["teacherPayoutStatus"] = TeacherPayoutStatus.INITIATED;
 	}
