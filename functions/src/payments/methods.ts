@@ -21,7 +21,12 @@ import {
 	TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
 	TeacherPayoutStatus,
 } from "../libs/constants";
-import { paymentFailed, paymentProcessed } from "../libs/email-template";
+import {
+	bankingInfoUpdated,
+	paymentFailed,
+	paymentMethodUpdated,
+	paymentProcessed,
+} from "../libs/email-template";
 
 export const addServiceChargeOnAmount = (amount: number) => {
 	const serviceCharge: number =
@@ -166,6 +171,16 @@ export const addUserCard = async (params: any) => {
 		await userMetaCollection
 			.doc(userId)
 			.update({ stripeCards: firestore.FieldValue.arrayUnion(card) });
+
+		const userSnap = await userCollection.doc(userId).get();
+		const user: any = userSnap.data();
+
+		await mailCollection.add(
+			paymentMethodUpdated({
+				userId,
+				userName: `${user.firstName} ${user.lastName}`,
+			})
+		);
 		return { message: "Card added successfully", card };
 	} catch (err) {
 		return { message: err };
@@ -385,6 +400,13 @@ export const attachBankAccountToCustomer = async (params: any) => {
 		console.log("stripePayoutAccount", JSON.stringify(stripePayoutAccount));
 
 		await userMetaCollection.doc(userId).update({ stripePayoutAccount });
+
+		await mailCollection.add(
+			bankingInfoUpdated({
+				userId,
+				userName: `${firstName} ${lastName}`,
+			})
+		);
 
 		return { stripePayoutAccount };
 	} catch (err) {

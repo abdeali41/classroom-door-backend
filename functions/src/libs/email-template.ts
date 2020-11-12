@@ -1,4 +1,7 @@
-import { CLASSROOMDOOR_WEB_URL } from "./constants";
+import {
+	CLASSROOMDOOR_SUPPORT_EMAIL,
+	CLASSROOMDOOR_WEB_URL,
+} from "./constants";
 
 export const sessionRequestedToTutor = ({
 	teacherId,
@@ -95,16 +98,12 @@ export const accountDeletion = ({ userId, userName }) => {
 export const studentAccountCreation = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Welcome to The Classroom Door",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Thank you for creating your account on The Classroom Door!&nbsp;</span><span style="font-size:13pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">TCD&rsquo;s team is here to help you set academic goals and powerfully achieve them.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:13pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Take the next step in your academic journey today!&nbsp;</span><a style="font-size:13pt;font-family:Arial;color:#000000;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "account-creation-student",
+			data: {
+				userName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -112,14 +111,12 @@ export const studentAccountCreation = ({ userId, userName }) => {
 export const teacherAccountCreation = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Welcome to The Classroom Door",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Thank you for creating your account on The Classroom Door!&nbsp;</span><span style="font-size:13pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">You are joining a team of educators dedicated to helping students set academic goals and powerfully achieve them.</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "account-creation-tutor",
+			data: {
+				userName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
@@ -150,28 +147,24 @@ export const backgroundCheckPlug = ({
 export const paymentMethodUpdated = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Payment Method Updated",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">A new payment method has been added to your account. If you did not request this, kindly contact</span><a href="mailto:support@theclassroomdoor.com" style="text-decoration:none;"><span style="font-size:12pt;font-family:Arial;color:#1155cc;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:underline;-webkit-text-decoration-skip:none;text-decoration-skip-ink:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">support@theclassroomdoor.com</span></a><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">.&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All our best,</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "payment-method-added",
+			data: {
+				userName,
+				supportEmail: CLASSROOMDOOR_SUPPORT_EMAIL,
+			},
 		},
 	};
 };
 export const bankingInfoUpdated = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Banking Information Updated",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},&nbsp;</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Your banking information has been added. If you did not request this, please contact&nbsp;</span><a href="mailto:support@theclassroomdoor.com" style="text-decoration:none;"><span style="font-size:12pt;font-family:Arial;color:#1155cc;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:underline;-webkit-text-decoration-skip:none;text-decoration-skip-ink:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">support@theclassroomdoor.com</span></a><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">.</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All our best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team</span></p>`,
+		template: {
+			name: "bank-info-added-updated",
+			data: {
+				userName,
+				supportEmail: CLASSROOMDOOR_SUPPORT_EMAIL,
+			},
 		},
 	};
 };
@@ -387,30 +380,24 @@ export const sessionBookedTutor = ({
 export const tutorSessionFollowup = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: `${userName}, we’d love to hear about your experience on The Classroom Door!`,
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">You have completed your session! Our tutors and advisors appreciate your feedback, kindly rate how the session went and what made your tutor/advisor great! </span><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Click here to book more sessions:&nbsp;</span><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;" href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "tutor-session-followup",
+			data: {
+				userName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };
 export const reviewSubmitted = ({ userId, userName }) => {
 	return {
 		toUids: [userId],
-		message: {
-			subject: "Someone submitted a new review!",
-			html: `<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Hi ${userName},</span></p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">Someone has submitted a new review on your tutor profile. See what they said&nbsp;</span><a style="font-size:12pt;font-family:Arial;color:#00ff00;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;"href="${CLASSROOMDOOR_WEB_URL}">${CLASSROOMDOOR_WEB_URL}</a>.</p>
-			<p><br></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">All the best,&nbsp;</span></p>
-			<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span style="font-size:12pt;font-family:Arial;color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;">The Classroom Door Team&nbsp;</span></p>`,
+		template: {
+			name: "review-submitted",
+			data: {
+				userName,
+				appUrl: CLASSROOMDOOR_WEB_URL,
+			},
 		},
 	};
 };

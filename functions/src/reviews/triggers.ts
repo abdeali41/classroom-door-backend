@@ -1,5 +1,8 @@
 import * as functions from "firebase-functions";
-import { updateRatingsAndReviewInUserMeta } from "./methods";
+import {
+	sendReviewSubmittedMail,
+	updateRatingsAndReviewInUserMeta,
+} from "./methods";
 
 /** REVIEWS/FEEDBACK TRIGGERS **/
 
@@ -10,4 +13,6 @@ export const onReviewAdded = functions.firestore
 		const reviewData: any = snapshot.data();
 
 		await updateRatingsAndReviewInUserMeta({ reviewId, reviewData });
+
+		await sendReviewSubmittedMail(reviewData);
 	});
