@@ -20,6 +20,7 @@ import {
 	getRoomRef,
 	userCollection,
 	getSessionStatusRef,
+	mailCollection,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../db/enum";
 import { isBetweenInterval } from "../libs/date-utils";
@@ -28,6 +29,7 @@ import {
 	updateBookingRequestStatus,
 } from "../booking/methods";
 import { SESSION_TYPES, UserTypes, TeacherTypes } from "../libs/constants";
+import { tutorSessionFollowup } from "../libs/email-template";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
 const generateNewSessionID = () => `session-${generateUniqueID()}`;
@@ -395,6 +397,8 @@ export const joinEpicboardSession = async (
 		sessionType,
 		attendance = [],
 		bookingId,
+		studentName,
+		teacherName,
 	}: any = epicboardSession;
 
 	const endTime = moment(startTime).add(sessionLength, "minutes");
@@ -458,6 +462,10 @@ export const joinEpicboardSession = async (
 			startTime,
 			sessionLength,
 			endTime: endTime.utc().toISOString(),
+			studentId,
+			teacherId,
+			studentName,
+			teacherName,
 		});
 	}
 
@@ -574,7 +582,14 @@ export const changeCompletedSessionStatus = async () => {
 	if (sessions) {
 		const done = await Promise.all(
 			Object.values(sessions).map(async (session: any) => {
-				const { id, startTime, sessionLength, endTime } = session;
+				const {
+					id,
+					startTime,
+					sessionLength,
+					endTime,
+					studentId,
+					studentName,
+				} = session;
 
 				let sessionCompleted = false;
 
@@ -591,6 +606,13 @@ export const changeCompletedSessionStatus = async () => {
 						.doc(id)
 						.update({ status: EPICBOARD_SESSION_STATUS_CODES.ENDED });
 					await getSessionStatusRef().child(id).remove();
+
+					if (studentId) {
+						await mailCollection.add(
+							tutorSessionFollowup({ userId: studentId, userName: studentName })
+						);
+					}
+
 					return true;
 				} else {
 					return false;
