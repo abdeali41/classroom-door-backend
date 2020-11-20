@@ -868,7 +868,7 @@ export const payTutorBookingAmount = async () => {
 
 				if (stripePayoutAccount.accountId) {
 					try {
-						const transfer = await payoutToTutor({
+						const transfer: any = await payoutToTutor({
 							amount: teacherPayoutAmount.toFixed(2),
 							accountId: stripePayoutAccount.accountId,
 							bookingId: id,
