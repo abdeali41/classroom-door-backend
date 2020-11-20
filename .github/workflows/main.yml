@@ -27,7 +27,7 @@ jobs:
         cd functions
         npm install
         touch .env
-        echo IS_PROD=false >> .env
+        echo IS_PROD=true >> .env
         echo STRIPE_DEV_KEY=${{ secrets.STRIPE_DEV_KEY }} >> .env
         echo FIREBASE_DATABASE_DEV_URL=${{ secrets.FIREBASE_DATABASE_DEV_URL }} >> .env
         echo FIREBASE_DEV_CERT_KEY=${{ secrets.FIREBASE_DEV_CERT_KEY }} >> .env
