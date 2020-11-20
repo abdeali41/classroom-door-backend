@@ -27,28 +27,27 @@ jobs:
         cd functions
         npm install
         ls
-    - name: Make envfile
-      uses: SpicyPizza/create-envfile@v1
-      with:
-        envkey_IS_PROD: false
-        envkey_STRIPE_DEV_KEY: ${{ secrets.STRIPE_DEV_KEY }}
-        envkey_FIREBASE_DATABASE_DEV_URL: ${{ secrets.FIREBASE_DATABASE_DEV_URL }}
-        envkey_FIREBASE_DEV_CERT_KEY: ${{ secrets.FIREBASE_DEV_CERT_KEY }}
-        envkey_PROJECT_ID_DEV: ${{ secrets.PROJECT_ID_DEV }}
-        envkey_STRIPE_WEBHOOK_SECRET_DEV: ${{ secrets.STRIPE_WEBHOOK_SECRET_DEV }}
-        envkey_CLASSROOMDOOR_WEB_DEV_URL: ${{ secrets.CLASSROOMDOOR_WEB_DEV_URL }}
-        envkey_OPENVIDU_DEV_URL: ${{ secrets.OPENVIDU_DEV_URL }}
-        envkey_OPENVIDU_DEV_SECURITY_TOKEN: ${{ secrets.OPENVIDU_DEV_SECURITY_TOKEN }}
-        envkey_STRIPE_PROD_KEY: ${{ secrets.STRIPE_PROD_KEY }}
-        envkey_FIREBASE_DATABASE_PROD_URL: ${{ secrets.FIREBASE_DATABASE_PROD_URL }}
-        envkey_FIREBASE_PROD_CERT_KEY: ${{ secrets.FIREBASE_PROD_CERT_KEY }}
-        envkey_PROJECT_ID_PROD: ${{ secrets.PROJECT_ID_PROD }}
-        envkey_STRIPE_WEBHOOK_SECRET_PROD: ${{ secrets.STRIPE_WEBHOOK_SECRET_PROD }}
-        envkey_CLASSROOMDOOR_WEB_PROD_URL: ${{ secrets.CLASSROOMDOOR_WEB_PROD_URL }}
-        envkey_OPENVIDU_PROD_URL: ${{ secrets.OPENVIDU_PROD_URL }}
-        envkey_OPENVIDU_PROD_SECURITY_TOKEN: ${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }}
-    - name: Check directory
+    - name: Create env file
       run: |
+        touch .env
+        echo IS_PROD=false
+        echo STRIPE_DEV_KEY=${{ secrets.STRIPE_DEV_KEY }} >> .env
+        echo FIREBASE_DATABASE_DEV_URL=${{ secrets.FIREBASE_DATABASE_DEV_URL }} >> .env
+        echo FIREBASE_DEV_CERT_KEY=${{ secrets.FIREBASE_DEV_CERT_KEY }} >> .env
+        echo PROJECT_ID_DEV=${{ secrets.PROJECT_ID_DEV }} >> .env
+        echo STRIPE_WEBHOOK_SECRET_DEV=${{ secrets.STRIPE_WEBHOOK_SECRET_DEV }} >> .env
+        echo CLASSROOMDOOR_WEB_DEV_URL=${{ secrets.CLASSROOMDOOR_WEB_DEV_URL }} >> .env
+        echo OPENVIDU_DEV_URL=${{ secrets.OPENVIDU_DEV_URL }} >> .env
+        echo OPENVIDU_DEV_SECURITY_TOKEN=${{ secrets.OPENVIDU_DEV_SECURITY_TOKEN }} >> .env
+        echo STRIPE_PROD_KEY=${{ secrets.STRIPE_PROD_KEY }} >> .env
+        echo FIREBASE_DATABASE_PROD_URL=${{ secrets.FIREBASE_DATABASE_PROD_URL }} >> .env
+        echo FIREBASE_PROD_CERT_KEY=${{ secrets.FIREBASE_PROD_CERT_KEY }} >> .env
+        echo PROJECT_ID_PROD=${{ secrets.PROJECT_ID_PROD }} >> .env
+        echo STRIPE_WEBHOOK_SECRET_PROD=${{ secrets.STRIPE_WEBHOOK_SECRET_PROD }} >> .env
+        echo CLASSROOMDOOR_WEB_PROD_URL=${{ secrets.CLASSROOMDOOR_WEB_PROD_URL }} >> .env
+        echo OPENVIDU_PROD_URL=${{ secrets.OPENVIDU_PROD_URL }} >> .env
+        echo OPENVIDU_PROD_SECURITY_TOKEN=${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }} >> .env
+        cat .env
         ls
     # Deploying the functions to firebase
     - name:  Deploy to Firebase
