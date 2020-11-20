@@ -403,9 +403,6 @@ export const joinEpicboardSession = async (
 
 	const endTime = moment(startTime).add(sessionLength, "minutes");
 
-	console.log("startTime----", startTime);
-	console.log("endTime----", endTime);
-
 	if (!isBetweenInterval(startTime, endTime)) {
 		return {
 			message:
