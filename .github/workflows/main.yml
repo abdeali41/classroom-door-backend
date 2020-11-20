@@ -44,6 +44,7 @@ jobs:
         echo CLASSROOMDOOR_WEB_PROD_URL=${{ secrets.CLASSROOMDOOR_WEB_PROD_URL }} >> .env
         echo OPENVIDU_PROD_URL=${{ secrets.OPENVIDU_PROD_URL }} >> .env
         echo OPENVIDU_PROD_SECURITY_TOKEN=${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }} >> .env
+        echo CLASSROOMDOOR_SUPPORT_EMAIL=${{ secrets.CLASSROOMDOOR_SUPPORT_EMAIL }} >> .env
         cat .env
         ls
     # Deploying the functions to firebase
