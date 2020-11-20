@@ -27,6 +27,7 @@ import {
 	paymentMethodUpdated,
 	paymentProcessed,
 } from "../libs/email-template";
+import env from "../env";
 
 export const addServiceChargeOnAmount = (amount: number) => {
 	const serviceCharge: number =
@@ -416,16 +417,16 @@ export const attachBankAccountToCustomer = async (params: any) => {
 };
 
 export const payoutToTutor = async (params: any) => {
-	const { amount, accountId, bookingId } = params;
+	// const { amount, accountId, bookingId } = params;
 
-	const transfer = await stripe.transfers.create({
-		amount: amount * 100,
-		currency: "usd",
-		destination: accountId,
-		transfer_group: bookingId,
-	});
+	// const transfer = await stripe.transfers.create({
+	// 	amount: amount * 100,
+	// 	currency: "usd",
+	// 	destination: accountId,
+	// 	transfer_group: bookingId,
+	// });
 
-	return transfer;
+	return Promise.resolve(env);
 };
 
 const updateAccountDetails = async (account: any) => {
