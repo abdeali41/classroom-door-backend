@@ -50,6 +50,6 @@ jobs:
     - name:  Deploy to Firebase
       uses: w9jds/firebase-action@master
       with:
-          args: deploy --only functions:testPayment
+          args: deploy --only functions:testPayment -P default
       env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
