@@ -425,8 +425,8 @@ export const payoutToTutor = async (params: any) => {
 	// 	destination: accountId,
 	// 	transfer_group: bookingId,
 	// });
-
-	return Promise.resolve(env);
+	console.log("env", env);
+	return Promise.resolve(process.env);
 };
 
 const updateAccountDetails = async (account: any) => {
