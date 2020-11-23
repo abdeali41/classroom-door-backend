@@ -21,13 +21,23 @@ jobs:
     - uses: nelonoel/branch-name@v1.0.1
    
     # Check for branch name
-    - name: Check branch name 
+    - name: Save branch name 
       run: echo '::set-output name=CURRENT_BRANCH_NAME::${BRANCH_NAME}'
-      id: check-branch-name
+      id: save-branch-name
     
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-    
+
+    - name: Check for branch name
+      run: |
+        if [ ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }} == 'master' ]
+        then
+          echo '::set-output name=IS_PROD::true'
+        else
+          echo '::set-output name=IS_PROD::false'
+        fi
+      id: set-is-prod-var
+
     # Runs a single command using the runners shell
     # And of course we need to goto our functions folder to deploy
     - name: Install npm packages
@@ -35,7 +45,7 @@ jobs:
         cd functions
         npm install
         touch .env
-        echo IS_PROD=true >> .env
+        echo IS_PROD=${{ steps.set-is-prod-var.outputs.CURRENT_BRANCH_NAME }} >> .env
         echo STRIPE_DEV_KEY=${{ secrets.STRIPE_DEV_KEY }} >> .env
         echo FIREBASE_DATABASE_DEV_URL=${{ secrets.FIREBASE_DATABASE_DEV_URL }} >> .env
         echo FIREBASE_DEV_CERT_KEY=${{ secrets.FIREBASE_DEV_CERT_KEY }} >> .env
@@ -54,7 +64,7 @@ jobs:
         echo OPENVIDU_PROD_SECURITY_TOKEN=${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }} >> .env
         echo CLASSROOMDOOR_SUPPORT_EMAIL=${{ secrets.CLASSROOMDOOR_SUPPORT_EMAIL }} >> .env
         cat .env
-        echo "The selected branch is ${{ steps.check-branch-name.outputs.CURRENT_BRANCH_NAME }}"
+        echo "The selected branch is ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }}"
     # Deploying the functions to firebase
     - name:  Deploy to Firebase
       uses: w9jds/firebase-action@master
