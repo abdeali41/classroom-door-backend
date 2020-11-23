@@ -65,6 +65,9 @@ jobs:
         echo CLASSROOMDOOR_SUPPORT_EMAIL=${{ secrets.CLASSROOMDOOR_SUPPORT_EMAIL }} >> .env
         cat .env
         echo "The selected branch is ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }}"
+        echo "The selected env is ${{ steps.set-is-prod-var.outputs.CURRENT_BRANCH_NAME }}"
+      id: install-npm-packages
+
     # Deploying the functions to firebase
     - name:  Deploy to Firebase
       uses: w9jds/firebase-action@master
