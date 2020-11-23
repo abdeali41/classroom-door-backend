@@ -17,16 +17,14 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-
-    # Use branch name for whatever purpose
-    - uses: nelonoel/branch-name@v1.0.1
+    # Check for branch name
+    - name: Check branch name 
+      uses: nelonoel/branch-name@v1.0.1
       run: echo '::set-output name=CURRENT_BRANCH_NAME::${BRANCH_NAME}'
       id: check-branch-name
     
-    # Check for branch name 
-    
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
     # Runs a single command using the runners shell
     # And of course we need to goto our functions folder to deploy
     - name: Install npm packages
