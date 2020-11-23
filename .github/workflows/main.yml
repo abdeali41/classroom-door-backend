@@ -72,6 +72,7 @@ jobs:
         cat .env
         echo "The selected branch is ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }}"
         echo "The selected env is ${{ steps.set-is-prod-var.outputs.IS_PROD }}"
+        echo "The selected project alias is ${{ steps.set-is-prod-var.outputs.PROJECT_ALIAS }}"
       id: install-npm-packages
 
     # Deploying the functions to firebase
