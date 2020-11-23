@@ -22,11 +22,11 @@ jobs:
 
     - uses: nelonoel/branch-name@v1.0.1
     # Use branch name for whatever purpose
-    - run: echo "::set-env name=BRANCH_NAME::$(echo ${BRANCH_NAME})"
+    - if: ${BRANCH_NAME} == 'chore/cd-for-cloud-functions'
+      run: echo 'Branch name is ' ${BRANCH_NAME}
 
     # Check for branch name 
-    - if: env.BRANCH_NAME == 'chore/cd-for-cloud-functions'
-      run: echo 'Branch name is ' $BRANCH_NAME
+    
     # Runs a single command using the runners shell
     # And of course we need to goto our functions folder to deploy
     - name: Install npm packages
