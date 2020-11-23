@@ -33,8 +33,14 @@ jobs:
         if [ ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }} == 'master' ]
         then
           echo '::set-output name=IS_PROD::true'
+          echo '::set-output name=PROJECT_ALIAS::production'
+        elif [ ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }} == 'uat' ]
+        then
+          echo '::set-output name=IS_PROD::true'
+          echo '::set-output name=PROJECT_ALIAS::uat'
         else
           echo '::set-output name=IS_PROD::false'
+          echo '::set-output name=PROJECT_ALIAS::default'
         fi
       id: set-is-prod-var
 
@@ -72,6 +78,6 @@ jobs:
     - name:  Deploy to Firebase
       uses: w9jds/firebase-action@master
       with:
-          args: deploy --only functions:testPayment -P default
+          args: deploy --only functions -P ${{ steps.set-is-prod-var.outputs.PROJECT_ALIAS }}
       env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
