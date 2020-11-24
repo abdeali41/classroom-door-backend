@@ -3,7 +3,6 @@ import { initializeApp } from "firebase-admin";
 
 initializeApp();
 
-
 /** USER **/
 export * from "./users";
 
@@ -33,3 +32,6 @@ export * from "./payments";
 
 /** EPICBOARD **/
 export * from "./epicboard";
+
+/** FIXES **/
+export * from "./fixes";
