@@ -30,6 +30,7 @@ const env = {
 	PROJECT_ID: isProd ? process.env.PROJECT_ID_PROD : process.env.PROJECT_ID_DEV,
 
 	CLASSROOMDOOR_SUPPORT_EMAIL: process.env.CLASSROOMDOOR_SUPPORT_EMAIL,
+	API_ACCESS_SECRET: process.env.API_ACCESS_SECRET || false,
 };
 
 export default env;
