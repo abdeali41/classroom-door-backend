@@ -1,3 +1,5 @@
+import env from "../env";
+
 export const firestoreCollectionKeys = {
 	USERS: "users",
 	TEACHERS: "teachers",
@@ -121,11 +123,8 @@ export const SERVICE_CHARGE_PERCENTAGE_ON_BOOKING = 8;
 
 // Commission on booking
 export const TCD_COMMISSION_PERCENTAGE_ON_BOOKING = 25;
-export const CLASSROOMDOOR_WEB_URL =
-	process.env.CLASSROOMDOOR_WEB_PROD_URL ||
-	process.env.CLASSROOMDOOR_WEB_DEV_URL;
-export const CLASSROOMDOOR_SUPPORT_EMAIL =
-	process.env.CLASSROOMDOOR_SUPPORT_EMAIL;
+export const CLASSROOMDOOR_WEB_URL = env.CLASSROOMDOOR_WEB_URL;
+export const CLASSROOMDOOR_SUPPORT_EMAIL = env.CLASSROOMDOOR_SUPPORT_EMAIL;
 
 export const TeacherPayoutStatus = {
 	REQUESTED: "REQUESTED",

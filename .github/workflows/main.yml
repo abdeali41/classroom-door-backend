@@ -1,0 +1,84 @@
+# workflow for deploying cloud functions
+
+name: Cloud functions deploy
+
+# Controls when the action will run. Triggers the workflow on push
+# events but only for the master branch
+on:
+  push:
+    branches: [ master, development, uat ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    
+    - uses: nelonoel/branch-name@v1.0.1
+   
+    # Check for branch name
+    - name: Save branch name 
+      run: echo '::set-output name=CURRENT_BRANCH_NAME::${BRANCH_NAME}'
+      id: save-branch-name
+    
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Check for branch name
+      run: |
+        if [ ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }} == 'master' ]
+        then
+          echo '::set-output name=IS_PROD::true'
+          echo '::set-output name=PROJECT_ALIAS::production'
+        elif [ ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }} == 'uat' ]
+        then
+          echo '::set-output name=IS_PROD::true'
+          echo '::set-output name=PROJECT_ALIAS::uat'
+        else
+          echo '::set-output name=IS_PROD::false'
+          echo '::set-output name=PROJECT_ALIAS::default'
+        fi
+      id: set-is-prod-var
+
+    # Runs a single command using the runners shell
+    # And of course we need to goto our functions folder to deploy
+    - name: Install npm packages
+      run: |
+        cd functions
+        npm install
+        touch .env
+        echo IS_PROD=${{ steps.set-is-prod-var.outputs.IS_PROD }} >> .env
+        echo STRIPE_DEV_KEY=${{ secrets.STRIPE_DEV_KEY }} >> .env
+        echo FIREBASE_DATABASE_DEV_URL=${{ secrets.FIREBASE_DATABASE_DEV_URL }} >> .env
+        echo FIREBASE_DEV_CERT_KEY=${{ secrets.FIREBASE_DEV_CERT_KEY }} >> .env
+        echo PROJECT_ID_DEV=${{ secrets.PROJECT_ID_DEV }} >> .env
+        echo STRIPE_WEBHOOK_SECRET_DEV=${{ secrets.STRIPE_WEBHOOK_SECRET_DEV }} >> .env
+        echo CLASSROOMDOOR_WEB_DEV_URL=${{ secrets.CLASSROOMDOOR_WEB_DEV_URL }} >> .env
+        echo OPENVIDU_DEV_URL=${{ secrets.OPENVIDU_DEV_URL }} >> .env
+        echo OPENVIDU_DEV_SECURITY_TOKEN=${{ secrets.OPENVIDU_DEV_SECURITY_TOKEN }} >> .env
+        echo STRIPE_PROD_KEY=${{ secrets.STRIPE_PROD_KEY }} >> .env
+        echo FIREBASE_DATABASE_PROD_URL=${{ secrets.FIREBASE_DATABASE_PROD_URL }} >> .env
+        echo FIREBASE_PROD_CERT_KEY=${{ secrets.FIREBASE_PROD_CERT_KEY }} >> .env
+        echo PROJECT_ID_PROD=${{ secrets.PROJECT_ID_PROD }} >> .env
+        echo STRIPE_WEBHOOK_SECRET_PROD=${{ secrets.STRIPE_WEBHOOK_SECRET_PROD }} >> .env
+        echo CLASSROOMDOOR_WEB_PROD_URL=${{ secrets.CLASSROOMDOOR_WEB_PROD_URL }} >> .env
+        echo OPENVIDU_PROD_URL=${{ secrets.OPENVIDU_PROD_URL }} >> .env
+        echo OPENVIDU_PROD_SECURITY_TOKEN=${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }} >> .env
+        echo CLASSROOMDOOR_SUPPORT_EMAIL=${{ secrets.CLASSROOMDOOR_SUPPORT_EMAIL }} >> .env
+        cat .env
+        echo "The selected branch is ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }}"
+        echo "The selected env is ${{ steps.set-is-prod-var.outputs.IS_PROD }}"
+        echo "The selected project alias is ${{ steps.set-is-prod-var.outputs.PROJECT_ALIAS }}"
+      id: install-npm-packages
+
+    # Deploying the functions to firebase
+    - name:  Deploy to Firebase
+      uses: w9jds/firebase-action@master
+      with:
+          args: deploy --only functions -P ${{ steps.set-is-prod-var.outputs.PROJECT_ALIAS }}
+      env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
