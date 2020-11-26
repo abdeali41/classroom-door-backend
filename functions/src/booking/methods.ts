@@ -45,6 +45,7 @@ import {
 	sessionRequestedToTutor,
 } from "../libs/email-template";
 import { formatDate, DateFormats } from "../libs/date-utils";
+import { generateNewSessionID } from "../sessions/methods";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
 // Can be used for both onCreate and onUpdate
@@ -53,18 +54,24 @@ export const updateBookingRequestStatus = async (
 	bookingRequestData: bookingRequestType,
 	extraData: Object = {}
 ) => {
-	const { studentId, teacherId, status, creationTime } = bookingRequestData;
+	const {
+		studentId,
+		teacherId,
+		status,
+		creationTime,
+		marketing_material_acceptance,
+	} = bookingRequestData;
 	// add  this id to user-event collections user data for both teacher & student
 	// node =>  user-data><studentId/teacherId>/booking-request
 	const batchWrite = firestoreDB.batch();
-	const bookingRequestObject: bookingRequestUserMetaType = addModifiedTimeStamp<
-		bookingRequestUserMetaType
-	>({
-		id: bookingRequestId,
-		status,
-		creationTime,
-		...extraData,
-	});
+	const bookingRequestObject: bookingRequestUserMetaType = addModifiedTimeStamp<bookingRequestUserMetaType>(
+		{
+			id: bookingRequestId,
+			status,
+			creationTime,
+			...extraData,
+		}
+	);
 
 	[studentId, teacherId].forEach((userId) => {
 		batchWrite.set(
@@ -75,6 +82,9 @@ export const updateBookingRequestStatus = async (
 			bookingRequestObject,
 			{ merge: true }
 		);
+	});
+	batchWrite.update(userMetaCollection.doc(studentId), {
+		marketing_material_acceptance,
 	});
 	await batchWrite.commit();
 };
@@ -91,47 +101,72 @@ export const createBookingRequest = async (
 		teacherName,
 		studentName,
 		teacherHourlyRate,
-		totalSessionLength,
 		sessionRequests,
-		teacherGroupSessionRate,
 		studentStripeCardId,
 		studentStripeCustomerId,
 		subjects,
+		tos_acceptance,
+		marketing_material_acceptance,
+		ip = null,
 	} = params;
 
+	let totalSessionLength = 0;
+
 	const initialRequest = sessionRequests.reduce(
-		(newSlotRequest: any, newItem: any) => ({
-			...newSlotRequest,
-			[`${newItem.date}-${newItem.selectedBreak}`]: {
-				selectedBreak: newItem.selectedBreak,
-				sessionLength: newItem.selectedLength,
-				date: newItem.date,
-			},
-		}),
+		(newSlotRequest: any, newItem: any) => {
+			const epicboardSessionId = generateNewSessionID();
+			const sessionLength = moment(newItem[1]).diff(
+				moment(newItem[0]),
+				"minutes"
+			);
+			if (sessionLength <= 0) {
+				throw {
+					name: "InvalidSlotsArray",
+					message: "Slots are not in required format",
+				};
+			}
+			totalSessionLength = totalSessionLength + sessionLength;
+			const startTime = moment(newItem[0]).utc().toISOString();
+			const endTime = moment(newItem[1]).utc().toISOString();
+			return {
+				...newSlotRequest,
+				[epicboardSessionId]: {
+					startTime,
+					endTime,
+					sessionLength,
+				},
+			};
+		},
 		{}
 	);
 
-	const requestThread: requestThreadMapType = {};
 	const bookingRequestId = generateUniqueID();
-	const bookingRequest: bookingRequestType = addCreationTimeStamp<
-		bookingRequestType
-	>({
-		id: bookingRequestId,
-		status: BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION,
-		teacherId,
-		teacherName,
-		studentId,
-		studentName,
-		teacherHourlyRate,
-		teacherGroupSessionRate,
-		totalSessionLength,
-		sessionType: SESSION_TYPES.SINGLE,
-		subjects,
-		initialRequest,
-		requestThread,
-		studentStripeCardId,
-		studentStripeCustomerId,
-	});
+	const bookingRequest: bookingRequestType = addCreationTimeStamp<bookingRequestType>(
+		{
+			id: bookingRequestId,
+			status: BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION,
+			teacherId,
+			teacherName,
+			studentId,
+			studentName,
+			teacherHourlyRate,
+			totalSessionLength,
+			sessionType: SESSION_TYPES.SINGLE,
+			subjects,
+			initialRequest,
+			requestThread: {},
+			studentStripeCardId,
+			studentStripeCustomerId,
+			tos_acceptance: {
+				date: moment(tos_acceptance.date).utc().toISOString(),
+				version: tos_acceptance.version,
+				ip,
+			},
+			marketing_material_acceptance: moment(marketing_material_acceptance)
+				.utc()
+				.toISOString(),
+		}
+	);
 
 	// adding to booking-request collection
 	await bookingRequestCollection.doc(bookingRequestId).set(bookingRequest);
@@ -252,13 +287,13 @@ const getData_RequestChangesByTeacher = (
 ): bookingRequestType => {
 	// need to create new slot
 	const { requestThread } = existingBookingRequestObject;
-	const newRequestThreadObject: requestThreadObjectType = addCreationTimeStamp<
-		requestThreadObjectType
-	>({
-		teacherComment,
-		studentComment: "",
-		slots: requestedSlots,
-	});
+	const newRequestThreadObject: requestThreadObjectType = addCreationTimeStamp<requestThreadObjectType>(
+		{
+			teacherComment,
+			studentComment: "",
+			slots: requestedSlots,
+		}
+	);
 	const newRequestThreadMapObject: requestThreadMapType = {
 		...requestThread,
 		[new Date().getTime().toString()]: newRequestThreadObject,

@@ -32,7 +32,7 @@ import { SESSION_TYPES, UserTypes, TeacherTypes } from "../libs/constants";
 import { tutorSessionFollowup } from "../libs/email-template";
 
 const generateNewRoomID = () => `room-${generateUniqueID()}`;
-const generateNewSessionID = () => `session-${generateUniqueID()}`;
+export const generateNewSessionID = () => `session-${generateUniqueID()}`;
 
 // Triggered from Crete Session-events
 export const createEpicboardRoom = async (
@@ -41,17 +41,17 @@ export const createEpicboardRoom = async (
 	studentIdList: string[],
 	teacherId: string
 ) => {
-	const newRoomCollectionObject: epicboardRoomObjectType = addCreationTimeStamp<
-		epicboardRoomObjectType
-	>({
-		status: EPICBOARD_ROOM_STATUS_CODES.CREATED,
-		id: roomId,
-		sessionEventIdList,
-		memberIdList: [...studentIdList, teacherId],
-		presenterId: teacherId,
-		activity: {},
-		savedStates: {},
-	});
+	const newRoomCollectionObject: epicboardRoomObjectType = addCreationTimeStamp<epicboardRoomObjectType>(
+		{
+			status: EPICBOARD_ROOM_STATUS_CODES.CREATED,
+			id: roomId,
+			sessionEventIdList,
+			memberIdList: [...studentIdList, teacherId],
+			presenterId: teacherId,
+			activity: {},
+			savedStates: {},
+		}
+	);
 	console.log("Epicboard Room Object ::", newRoomCollectionObject);
 	await epicboardRoomCollection
 		.doc(roomId)

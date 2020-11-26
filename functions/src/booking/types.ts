@@ -41,6 +41,7 @@ type bookingRequestType = {
 	subjects: string[];
 	initialRequest: initialRequestSlotType;
 	requestThread: requestThreadMapType;
+	marketing_material_acceptance: string;
 } & createdAndModifiedTimeStampTypes;
 
 type updateBookingRequestBodyType = {
@@ -72,6 +73,15 @@ type createBookingRequestParams = {
 	subjects: string[];
 	studentStripeCardId: string;
 	studentStripeCustomerId: string;
+	tos_acceptance: tos_acceptance;
+	marketing_material_acceptance: string;
+	ip: string;
+};
+
+type tos_acceptance = {
+	date: string;
+	version: string;
+	ip: string;
 };
 
 type createBookingRequestReturnType = {
@@ -83,7 +93,7 @@ type getAllBookingsForUserParams = {
 };
 
 type getAllBookingsForUserReturnType = {
-	bookings: any & { id: string }[];
+	bookings: any;
 };
 
 type updateBookingRequestReturnType = {
