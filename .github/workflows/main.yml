@@ -69,6 +69,7 @@ jobs:
         echo OPENVIDU_PROD_URL=${{ secrets.OPENVIDU_PROD_URL }} >> .env
         echo OPENVIDU_PROD_SECURITY_TOKEN=${{ secrets.OPENVIDU_PROD_SECURITY_TOKEN }} >> .env
         echo CLASSROOMDOOR_SUPPORT_EMAIL=${{ secrets.CLASSROOMDOOR_SUPPORT_EMAIL }} >> .env
+        echo API_ACCESS_SECRET=${{ secrets.API_ACCESS_SECRET }} >> .env
         cat .env
         echo "The selected branch is ${{ steps.save-branch-name.outputs.CURRENT_BRANCH_NAME }}"
         echo "The selected env is ${{ steps.set-is-prod-var.outputs.IS_PROD }}"

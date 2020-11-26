@@ -1,5 +1,6 @@
 // import * as admin from "firebase-admin";
 import { v4 } from "uuid";
+import env from "../env";
 
 export const getServerTimeStamp = () => new Date();
 
@@ -48,4 +49,19 @@ export const getRefPathRelativeToRoot = (ref: any) => {
 		startRef = startRef.parent;
 	}
 	return path;
+};
+
+export const verifySecret = (body: any): void => {
+	if (!env.API_ACCESS_SECRET || !body.secret) {
+		throw {
+			name: "AuthorizationError",
+			message: "Unauthorized request!",
+		};
+	}
+	if (body.secret !== env.API_ACCESS_SECRET) {
+		throw {
+			name: "AuthorizationError",
+			message: "Unauthorized request!",
+		};
+	}
 };
