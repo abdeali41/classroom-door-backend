@@ -68,3 +68,19 @@ export const updateBookingRequest = functions.https.onRequest(
 			});
 	}
 );
+
+// TEACHER NON-AVAILABLE SLOTS
+export const checkTeacherAvailability = functions.https.onRequest(
+	async (req, res) => {
+		verifySecret(req.body);
+		methods
+			.getTeacherAvailability(req.body)
+			.then((data) => {
+				SendResponse(res).success("Retrieved success", data);
+			})
+			.catch((err) => {
+				console.log("err", err);
+				SendResponse(res).failed("Retrieved Failure");
+			});
+	}
+);

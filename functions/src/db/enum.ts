@@ -29,6 +29,7 @@ export enum userMetaSubCollectionKeys {
 	EPICBOARD_SESSION = "epicboard-session",
 	EPICBOARD_ROOM = "epicboard-room",
 	CONNECTED_PEOPLE = "connected-people",
+	CURRENT_BOOKINGS = "current-bookings",
 }
 
 export enum epicboardRoomSubCollectionKeys {

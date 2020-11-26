@@ -104,3 +104,23 @@ type teacherPendingBookingRequestCountReturnType = {
 	count: number;
 	students: { name: string; avatarUrl: string }[];
 };
+
+type bookedSlotsType = {
+	[key: string]: {
+		startTime: string;
+		endTime: string;
+		sessionId: string;
+	};
+};
+
+type getTeacherAvailabilityParams = {
+	teacherId: string;
+	startDate: string;
+	noOfMonths: number;
+};
+
+type getTeacherAvailabilityReturnType = {
+	teacherId: string;
+	slotInterval: number;
+	bookedSlots: bookedSlotsType[];
+};

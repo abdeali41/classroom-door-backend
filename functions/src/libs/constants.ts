@@ -133,3 +133,6 @@ export const TeacherPayoutStatus = {
 	PAID: "PAID",
 	FAILED: "FAILED",
 };
+
+// BOOKING SLOT INTERVAL
+export const BOOKING_SLOT_INTERVAL = 15;

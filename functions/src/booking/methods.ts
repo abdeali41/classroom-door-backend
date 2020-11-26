@@ -958,3 +958,35 @@ export const updateBookingPayoutStatus = async (
 			.update({ status: params.teacherPayoutStatus });
 	}
 };
+
+export const getTeacherAvailability = async (
+	params: getTeacherAvailabilityParams
+): Promise<getTeacherAvailabilityReturnType> => {
+	const { teacherId, startDate, noOfMonths } = params;
+
+	const bookedSlots = await [...Array(noOfMonths)].reduce(
+		async (acc, curr, index) => {
+			const prev = await acc;
+			const monthYear = moment(startDate).utc().add(index, "M").format("MMM-Y");
+			const currentBookingSnap = await userMetaCollection
+				.doc(teacherId)
+				.collection(userMetaSubCollectionKeys.CURRENT_BOOKINGS)
+				.doc(monthYear)
+				.get();
+
+			const { slots = [] }: any = currentBookingSnap.data() || {};
+
+			return {
+				...prev,
+				[monthYear]: slots,
+			};
+		},
+		Promise.resolve({})
+	);
+
+	return {
+		teacherId,
+		bookedSlots,
+		slotInterval: BOOKING_SLOT_INTERVAL,
+	};
+};
