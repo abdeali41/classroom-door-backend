@@ -24,39 +24,39 @@ export const booking = functions.https.onCall(
 
 		let result: any;
 
-		switch (actionType) {
-			case actionTypes.CREATE_BOOKING_REQUEST:
-				result = await methods.createBookingRequest({ ...data, userId });
-				break;
-			case actionTypes.GET_BOOKING_REQUESTS:
-				result = await methods.getAllBookingsForUser({ userId });
-				break;
-			case actionTypes.GET_BOOKING_REQUEST_BY_ID:
-				const { id } = data;
-				result = await methods.getBookingById(id);
-				break;
-			case actionTypes.UPDATE_BOOKING_REQUEST:
-				try {
+		try {
+			switch (actionType) {
+				case actionTypes.CREATE_BOOKING_REQUEST:
+					result = await methods.createBookingRequest({ ...data, userId });
+					break;
+				case actionTypes.GET_BOOKING_REQUESTS:
+					result = await methods.getAllBookingsForUser({ userId });
+					break;
+				case actionTypes.GET_BOOKING_REQUEST_BY_ID:
+					const { id } = data;
+					result = await methods.getBookingById(id);
+					break;
+				case actionTypes.UPDATE_BOOKING_REQUEST:
 					result = await methods.updateBookingRequest({ ...data, userId });
-				} catch (e) {
-					result = {
-						successType: successTypes.SHOW_MESSAGE,
-						message: e.message,
-						error: true,
-					};
-				}
-				break;
-			case actionTypes.TEACHER_PENDING_BOOKING_REQUEST_COUNT:
-				result = await methods.teacherPendingBookingRequestCount({ userId });
-				break;
-			case actionTypes.CHECK_TEACHER_AVAILABILITY:
-				result = await methods.getTeacherAvailability(data);
-				break;
-			default:
-				result = null;
-				break;
-		}
 
-		return result;
+					break;
+				case actionTypes.TEACHER_PENDING_BOOKING_REQUEST_COUNT:
+					result = await methods.teacherPendingBookingRequestCount({ userId });
+					break;
+				case actionTypes.CHECK_TEACHER_AVAILABILITY:
+					result = await methods.getTeacherAvailability(data);
+					break;
+				default:
+					result = null;
+					break;
+			}
+			return result;
+		} catch (e) {
+			return {
+				successType: successTypes.SHOW_MESSAGE,
+				message: e.message,
+				error: true,
+			};
+		}
 	}
 );

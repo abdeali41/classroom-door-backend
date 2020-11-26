@@ -51,17 +51,22 @@ export const getRefPathRelativeToRoot = (ref: any) => {
 	return path;
 };
 
-export const verifySecret = (body: any): void => {
-	if (!env.API_ACCESS_SECRET || !body.secret) {
-		throw {
-			name: "AuthorizationError",
-			message: "Unauthorized request!",
-		};
-	}
-	if (body.secret !== env.API_ACCESS_SECRET) {
-		throw {
-			name: "AuthorizationError",
-			message: "Unauthorized request!",
-		};
+export const verifySecret = (req: any, res: any): void => {
+	const secret = req.get("x-custom-auth-token");
+	try {
+		if (!env.API_ACCESS_SECRET || !secret) {
+			throw {
+				name: "AuthorizationError",
+				message: "Unauthorized request!",
+			};
+		}
+		if (secret !== env.API_ACCESS_SECRET) {
+			throw {
+				name: "AuthorizationError",
+				message: "Unauthorized request!",
+			};
+		}
+	} catch (e) {
+		res.status(400).json({ error: e.name, message: e.message });
 	}
 };

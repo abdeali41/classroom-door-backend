@@ -5,11 +5,8 @@ import {
 	userMetaCollection,
 } from "../db";
 import { userMetaSubCollectionKeys } from "../libs/constants";
-import { verifySecret } from "../libs/generics";
 
 export const deleteOldUserSessions = async (params: any) => {
-	verifySecret(params);
-
 	const { limit } = params;
 
 	const batch = firestoreDB.batch();
