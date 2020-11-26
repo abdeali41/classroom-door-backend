@@ -26,6 +26,7 @@ import {
 	TCD_COMMISSION_PERCENTAGE_ON_BOOKING,
 	TeacherPayoutStatus,
 	UserTypes,
+	BOOKING_SLOT_INTERVAL,
 } from "../libs/constants";
 import {
 	acceptAndPayForBooking,
@@ -115,19 +116,27 @@ export const createBookingRequest = async (
 	const initialRequest = sessionRequests.reduce(
 		(newSlotRequest: any, newItem: any) => {
 			const epicboardSessionId = generateNewSessionID();
-			const sessionLength = moment(newItem[1]).diff(
-				moment(newItem[0]),
-				"minutes"
-			);
+
+			const sessionLength = moment(newItem.endTime)
+				.utc()
+				.diff(moment(newItem.startTime).utc(), "minutes");
 			if (sessionLength <= 0) {
 				throw {
 					name: "InvalidSlotsArray",
 					message: "Slots are not in required format",
 				};
 			}
+
+			if (moment(newItem.startTime).utc().isBefore(moment().utc())) {
+				throw {
+					name: "InvalidSlotsArray",
+					message: "One or more slots is before current time",
+				};
+			}
+
 			totalSessionLength = totalSessionLength + sessionLength;
-			const startTime = moment(newItem[0]).utc().toISOString();
-			const endTime = moment(newItem[1]).utc().toISOString();
+			const startTime = moment(newItem.startTime).utc().toISOString();
+			const endTime = moment(newItem.endTime).utc().toISOString();
 			return {
 				...newSlotRequest,
 				[epicboardSessionId]: {
