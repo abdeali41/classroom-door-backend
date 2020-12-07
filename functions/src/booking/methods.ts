@@ -45,7 +45,7 @@ import {
 	sessionCancelledByTutorTutor,
 	sessionRequestedToTutor,
 } from "../libs/email-template";
-import { formatDate, DateFormats } from "../libs/date-utils";
+import { formatDate, DateFormats, getTimestamp } from "../libs/date-utils";
 import { generateNewSessionID } from "../sessions/methods";
 
 // Updates user-meta/<userId>/<bookingId>/doc -> status, modifiedTime
@@ -250,65 +250,42 @@ export const getLastRequestObject = (
 };
 
 const getData_RequestChangesByStudent = (
-	existingBookingRequestObject: bookingRequestType,
+	requestThread: object,
 	requestedSlots: requestThreadSlotMapType,
-	studentComment: string
+	studentComment: string,
+	requestThreadId: string
 ): bookingRequestType => {
-	const { requestThread } = existingBookingRequestObject;
-	const { latestRequestKey, latestRequestMap } = getLastRequestObject(
-		requestThread
-	);
-
-	const updatedSlotsObject: requestThreadSlotMapType = Object.keys(
-		requestThread[latestRequestKey].slots
-	).reduce((updatedSlots, slotKey) => {
-		const { studentAccepted, deleted } = requestedSlots[slotKey];
-		return {
-			...updatedSlots,
-			[slotKey]: {
-				...latestRequestMap.slots[slotKey],
-				studentAccepted,
-				deleted,
-			},
-		};
-	}, {});
-
 	const newRequestThreadMapObject: requestThreadMapType = {
 		...requestThread,
-		[latestRequestKey]: {
-			...latestRequestMap,
+		[requestThreadId]: {
 			studentComment,
-			slots: updatedSlotsObject,
+			teacherComment: "",
+			slots: requestedSlots,
 		},
 	};
 
 	return addModifiedTimeStamp<bookingRequestType>({
-		...existingBookingRequestObject,
 		status: BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_TEACHER_CONFIRMATION,
 		requestThread: newRequestThreadMapObject,
 	});
 };
 
 const getData_RequestChangesByTeacher = (
-	existingBookingRequestObject: bookingRequestType,
+	requestThread: object,
 	requestedSlots: requestThreadSlotMapType,
-	teacherComment: string
+	teacherComment: string,
+	requestThreadId: string
 ): bookingRequestType => {
 	// need to create new slot
-	const { requestThread } = existingBookingRequestObject;
-	const newRequestThreadObject: requestThreadObjectType = addCreationTimeStamp<requestThreadObjectType>(
-		{
+	const newRequestThreadMapObject: requestThreadMapType = {
+		...requestThread,
+		[requestThreadId]: {
 			teacherComment,
 			studentComment: "",
 			slots: requestedSlots,
-		}
-	);
-	const newRequestThreadMapObject: requestThreadMapType = {
-		...requestThread,
-		[new Date().getTime().toString()]: newRequestThreadObject,
+		},
 	};
 	return addModifiedTimeStamp<bookingRequestType>({
-		...existingBookingRequestObject,
 		status: BOOKING_REQUEST_STATUS_CODES.WAITING_FOR_STUDENT_CONFIRMATION,
 		requestThread: newRequestThreadMapObject,
 	});
@@ -316,11 +293,11 @@ const getData_RequestChangesByTeacher = (
 
 // Method to get
 const getData_RejectOrCancelBookingRequest = (
-	existingBookingRequestObject: bookingRequestType,
+	// existingBookingRequestObject: bookingRequestType,
 	isStudent: Boolean
 ): bookingRequestType => {
 	return addModifiedTimeStamp<bookingRequestType>({
-		...existingBookingRequestObject,
+		// ...existingBookingRequestObject,
 		status: isStudent
 			? BOOKING_REQUEST_STATUS_CODES.CANCELLED
 			: BOOKING_REQUEST_STATUS_CODES.REJECTED,
@@ -359,10 +336,8 @@ export const updateBookingRequest = async (
 		bookingId,
 		userId,
 		updatedSlotRequests,
-		teacherComment = "",
-		studentComment = "",
-		allChangesApprovedByStudent = false,
 		bookingRejectedOrCancelled = false,
+		comment = "",
 	} = params;
 
 	console.log("bookingId", bookingId);
@@ -371,9 +346,11 @@ export const updateBookingRequest = async (
 		updatedSlotRequests
 	);
 
-	if (ifAnySlotsAreBackDated && allChangesApprovedByStudent) {
+	const allSlotsApproved = false;
+
+	if (ifAnySlotsAreBackDated && allSlotsApproved) {
 		throw new Error(
-			"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
+			"Unable to Create approved session: Session times should at-least have a buffer of 1 minute"
 		);
 	}
 
@@ -390,6 +367,7 @@ export const updateBookingRequest = async (
 				const bookingRequestData:
 					| any
 					| bookingRequestType = bookingRequestDoc.data();
+
 				const {
 					studentId,
 					teacherId,
@@ -397,13 +375,18 @@ export const updateBookingRequest = async (
 					teacherName,
 					studentName,
 					subjects,
+					requestThread,
 				} = bookingRequestData;
+
 				let newBookingRequestData: bookingRequestType = bookingRequestData;
+
+				const isStudent = userId === studentId;
+				const isTeacher = userId === teacherId;
 
 				if (
 					ifAnySlotsAreBackDated &&
 					!bookingRejectedOrCancelled &&
-					userId === teacherId
+					isTeacher
 				) {
 					throw new Error(
 						"Unable to Create approved session: Session times should at-least have a buffer of 30 minutes"
@@ -439,15 +422,14 @@ export const updateBookingRequest = async (
 				if (bookingRejectedOrCancelled) {
 					// When Booking is rejected(teacher) or cancelled(student)
 					newBookingRequestData = getData_RejectOrCancelBookingRequest(
-						bookingRequestData,
-						userId === studentId
+						isStudent
 					);
-					transaction.update(bookingRequestDocRef, newBookingRequestData);
+					transaction.update(bookingRequestDocRef, { status });
 					const mailParams = {
 						teacherName,
 						studentName,
 					};
-					if (userId === studentId) {
+					if (isStudent) {
 						await mailCollection.add(
 							sessionCancelledByStudentStudent({
 								userId: studentId,
@@ -474,12 +456,51 @@ export const updateBookingRequest = async (
 							})
 						); // Send rejection mail to teacher
 					}
-				} else if (userId === teacherId) {
-					// teacher tying to update
-					newBookingRequestData = getData_RequestChangesByTeacher(
+				} else if (allSlotsApproved) {
+					// Student Approved Request
+					// check all slots are studentAccepted or deleted
+					// or return error
+					newBookingRequestData = getData_AcceptBookingRequestByStudent(
 						bookingRequestData,
 						updatedSlotRequests,
-						teacherComment
+						comment
+					);
+					const sessionString = getConfirmedSessionString(
+						newBookingRequestData.requestThread
+					);
+					const subjectString = subjects.join(",");
+					const [stripeStatus, client_secret] = await acceptAndPayForBooking({
+						...newBookingRequestData,
+						sessionString,
+						subjectString,
+					});
+
+					if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
+						transaction.update(bookingRequestDocRef, newBookingRequestData);
+						return newBookingRequestData;
+					} else if (stripeStatus === StripeStatus.REQUIRES_ACTION) {
+						const requireActionResponse = {
+							...newBookingRequestData,
+							status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING,
+							stripeClientSecret: client_secret,
+						};
+						transaction.update(bookingRequestDocRef, requireActionResponse);
+						return requireActionResponse;
+					} else {
+						throw {
+							name: "PaymentError",
+							message: client_secret,
+						};
+					}
+				} else if (isTeacher) {
+					const requestThreadId = `${getTimestamp()}`;
+
+					// teacher tying to update
+					newBookingRequestData = getData_RequestChangesByTeacher(
+						requestThread,
+						updatedSlotRequests,
+						comment,
+						requestThreadId
 					);
 					transaction.update(bookingRequestDocRef, newBookingRequestData);
 					await mailCollection.add(
@@ -489,63 +510,27 @@ export const updateBookingRequest = async (
 							teacherName,
 						})
 					);
-				} else if (userId === studentId) {
+				} else if (isStudent) {
+					const requestThreadId = `${getTimestamp()}`;
+
 					// student trying to update
-					// check if its approved
-					if (!allChangesApprovedByStudent) {
-						// Student Not approved Request
-						newBookingRequestData = getData_RequestChangesByStudent(
-							bookingRequestData,
-							updatedSlotRequests,
-							studentComment
-						);
-						transaction.update(bookingRequestDocRef, newBookingRequestData);
-						await mailCollection.add(
-							bookingSuggestionTutor({
-								userId: teacherId,
-								studentName,
-								teacherName,
-							})
-						);
-						return;
-					}
-					// Student Approved Request
-					// check all slots are studentAccepted or deleted
-					// or return error
-					newBookingRequestData = getData_AcceptBookingRequestByStudent(
+
+					// Student Not approved Request
+					newBookingRequestData = getData_RequestChangesByStudent(
 						bookingRequestData,
 						updatedSlotRequests,
-						studentComment
+						comment,
+						requestThreadId
 					);
-					if (allChangesApprovedByStudent) {
-						const sessionString = getConfirmedSessionString(
-							newBookingRequestData.requestThread
-						);
-						const subjectString = subjects.join(",");
-						const [stripeStatus, client_secret] = await acceptAndPayForBooking({
-							...newBookingRequestData,
-							sessionString,
-							subjectString,
-						});
-
-						if (stripeStatus === StripeStatus.PAYMENT_SUCCESS) {
-							transaction.update(bookingRequestDocRef, newBookingRequestData);
-							return newBookingRequestData;
-						} else if (stripeStatus === StripeStatus.REQUIRES_ACTION) {
-							const requireActionResponse = {
-								...newBookingRequestData,
-								status: BOOKING_REQUEST_STATUS_CODES.PAYMENT_PROCESSING,
-								stripeClientSecret: client_secret,
-							};
-							transaction.update(bookingRequestDocRef, requireActionResponse);
-							return requireActionResponse;
-						} else {
-							throw {
-								name: "PaymentError",
-								message: client_secret,
-							};
-						}
-					}
+					transaction.update(bookingRequestDocRef, newBookingRequestData);
+					await mailCollection.add(
+						bookingSuggestionTutor({
+							userId: teacherId,
+							studentName,
+							teacherName,
+						})
+					);
+					return;
 				} else {
 					// wrong userID
 					console.log("ERROR:// wrong userID ", userId, newBookingRequestData);

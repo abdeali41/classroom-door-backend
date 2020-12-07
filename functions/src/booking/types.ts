@@ -13,7 +13,7 @@ type requestThreadObjectType = {
 	teacherComment: string;
 	studentComment: string;
 	slots: requestThreadSlotMapType;
-} & createdAndModifiedTimeStampTypes;
+};
 
 type requestThreadMapType = {
 	[key: string]: requestThreadObjectType;
@@ -48,9 +48,7 @@ type updateBookingRequestBodyType = {
 	bookingId: string;
 	userId: string;
 	updatedSlotRequests: requestThreadSlotMapType;
-	studentComment: string;
-	teacherComment: string;
-	allChangesApprovedByStudent: boolean;
+	comment: string;
 	bookingRejectedOrCancelled: boolean;
 };
 
