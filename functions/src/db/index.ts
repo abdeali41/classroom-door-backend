@@ -5,6 +5,8 @@ export const firestoreDB = admin.firestore();
 export const realtimeDB = admin.database();
 export const fcmMessaging = admin.messaging();
 
+firestoreDB.settings({ ignoreUndefinedProperties: true });
+
 // FIRESTORE COLLECTIONS
 export const userCollection = firestoreDB.collection(
 	firestoreCollectionKeys.USERS

@@ -1,7 +1,5 @@
 {
   "projects": {
-    "default": "classroom-door",
-    "production": "classroom-door-prod",
-    "uat": "classroom-door-uat"
+    "default": "tcd-demo-7fa64"
   }
 }
